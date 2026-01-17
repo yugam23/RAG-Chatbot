@@ -19,7 +19,7 @@ Built with **FastAPI**, **LangChain**, and **Google Gemini** on the backend, and
 ### 🧠 Intelligent Backend
 *   **Powered by Google Gemini**: Utilizes the latest `gemini-flash` models for lightning-fast and accurate responses.
 *   **Advanced RAG Pipeline**: Implements efficient document chunking, embedding (Gecko), and vector retrieval using **FAISS**.
-*   **Robust PDF Processing**: securely parses and validates PDF files (Magic Byte checks, size limits).
+*   **Robust PDF Processing**: Securely parses and validates PDF files (Magic Byte checks, size limits).
 *   **Session Management**: Full chat persistence using **SQLite** with endpoints to clear history or reset sessions completely.
 *   **Security First**: Built-in rate limiting, request tracing, and input validation.
 
