@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useChat } from './hooks/useChat';
+import { AnimatePresence, motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+
 import { Header, ChatArea, ChatInput, SplashScreen } from './components';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -10,21 +10,6 @@ import ErrorBoundary from './components/ErrorBoundary';
  */
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
-  const {
-    messages,
-    isLoading,
-    isUploading,
-    uploadStatus,
-    uploadedFileName,
-    connectionStatus,
-    fileInputRef,
-    messagesEndRef,
-    handleFileUpload,
-    handleNewChat,
-    handleClearChat,
-    sendMessage,
-    abortRequest,
-  } = useChat();
 
   return (
     <ErrorBoundary>
@@ -48,32 +33,13 @@ const App = () => {
               </div>
 
               {/* Header */}
-              <Header
-                uploadedFileName={uploadedFileName}
-                uploadStatus={uploadStatus}
-                isUploading={isUploading}
-                fileInputRef={fileInputRef}
-                onFileUpload={handleFileUpload}
-                onNewChat={handleNewChat}
-                connectionStatus={connectionStatus}
-              />
+              <Header />
 
               {/* Chat Area */}
-              <ChatArea
-                messages={messages}
-                messagesEndRef={messagesEndRef}
-                uploadedFileName={uploadedFileName}
-                isLoading={isLoading}
-              />
+              <ChatArea />
 
               {/* Input Area */}
-              <ChatInput
-                onSend={sendMessage}
-                onClearChat={handleClearChat}
-                onAbort={abortRequest}
-                isLoading={isLoading}
-                showClearChat={!!uploadedFileName}
-              />
+              <ChatInput />
             </div>
           </motion.div>
         )}
