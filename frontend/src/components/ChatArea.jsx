@@ -5,7 +5,13 @@ import { ChatMessage } from './ChatMessage';
 /**
  * ChatArea - Main chat display area with message list and empty states
  */
-export function ChatArea({ messages, messagesEndRef, uploadedFileName, isLoading }) {
+import { useChatContext } from '../context/ChatContext';
+
+/**
+ * ChatArea - Main chat display area with message list and empty states
+ */
+export function ChatArea() {
+  const { messages, messagesEndRef, uploadedFileName, isLoading } = useChatContext();
   // Filter out empty assistant messages (we'll show "Thinking..." instead)
   const visibleMessages = messages.filter((msg, idx) => {
     // Show all non-empty messages
@@ -22,7 +28,12 @@ export function ChatArea({ messages, messagesEndRef, uploadedFileName, isLoading
     messages[messages.length - 1]?.content === '';
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth custom-scrollbar">
+    <div
+      className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth custom-scrollbar"
+      role="log"
+      aria-label="Chat history"
+      aria-live="polite"
+    >
       {/* Empty State */}
       {messages.length === 0 && !isLoading && (
         <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-50">

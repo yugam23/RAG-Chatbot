@@ -4,7 +4,20 @@ import { Send } from 'lucide-react';
 /**
  * ChatInput - Message input field with send button and clear chat action
  */
-export function ChatInput({ onSend, onClearChat, onAbort, isLoading, showClearChat }) {
+import { useChatContext } from '../context/ChatContext';
+
+/**
+ * ChatInput - Message input field with send button and clear chat action
+ */
+export function ChatInput() {
+  const {
+    sendMessage: onSend,
+    handleClearChat: onClearChat,
+    abortRequest: onAbort,
+    isLoading,
+    uploadedFileName,
+  } = useChatContext();
+  const showClearChat = !!uploadedFileName;
   const [input, setInput] = useState('');
 
   const handleSubmit = () => {
@@ -28,6 +41,7 @@ export function ChatInput({ onSend, onClearChat, onAbort, isLoading, showClearCh
           <button
             onClick={onClearChat}
             className="absolute bottom-full mb-7 -left-12 p-2.5 rounded-full bg-black/40 hover:bg-blue-600/20 border border-white/10 hover:border-blue-500/30 transition-all text-gray-400 hover:text-blue-400 group backdrop-blur-md shadow-lg"
+            aria-label="Clear chat history"
           >
             <img
               src="/clear_chat.png"
@@ -49,6 +63,7 @@ export function ChatInput({ onSend, onClearChat, onAbort, isLoading, showClearCh
           placeholder="Ask a question..."
           disabled={isLoading}
           className="glass-input w-full pr-12"
+          aria-label="Ask a question about your document"
         />
 
         {/* Send / Stop Button */}
@@ -56,11 +71,11 @@ export function ChatInput({ onSend, onClearChat, onAbort, isLoading, showClearCh
           onClick={isLoading ? onAbort : handleSubmit}
           disabled={!isLoading && !input.trim()}
           className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all shadow-lg 
-                        ${
-                          isLoading
-                            ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30'
-                            : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white disabled:opacity-0 disabled:scale-75'
-                        }`}
+                        ${isLoading
+              ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30'
+              : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white disabled:opacity-0 disabled:scale-75'
+            }`}
+          aria-label={isLoading ? 'Stop generating' : 'Send message'}
         >
           {isLoading ? (
             <div className="w-4 h-4 rounded-sm bg-current" />

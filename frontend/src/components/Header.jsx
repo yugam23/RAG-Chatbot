@@ -31,15 +31,22 @@ const ConnectionIndicator = ({ status }) => {
 /**
  * Header - Top navigation bar with logo, upload, and action buttons
  */
-export function Header({
-  uploadedFileName,
-  uploadStatus,
-  isUploading,
-  fileInputRef,
-  onFileUpload,
-  onNewChat,
-  connectionStatus,
-}) {
+import { useChatContext } from '../context/ChatContext';
+
+/**
+ * Header - Top navigation bar with logo, upload, and action buttons
+ */
+export function Header() {
+  const {
+    uploadedFileName,
+    uploadStatus,
+    isUploading,
+    fileInputRef,
+    handleFileUpload: onFileUpload,
+    handleNewChat: onNewChat,
+    connectionStatus,
+  } = useChatContext();
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) onFileUpload(file);
@@ -52,7 +59,7 @@ export function Header({
         <div className="relative">
           <img
             src="/chatbot.png"
-            alt="Logo"
+            alt="RAG Chatbot Logo"
             className="w-12 h-12 object-contain hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"
           />
         </div>
@@ -91,6 +98,7 @@ export function Header({
             <button
               onClick={onNewChat}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/5 transition-all text-sm font-medium text-gray-200 hover:text-white"
+              aria-label="Start new chat"
             >
               <img
                 src="/message.png"
@@ -111,11 +119,13 @@ export function Header({
               className="hidden"
               ref={fileInputRef}
               onChange={handleFileChange}
+              aria-label="Upload PDF document"
             />
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 transition-all text-sm font-medium text-blue-200 hover:text-blue-100 disabled:opacity-50 disabled:cursor-not-allowed group"
+              aria-label="Upload PDF"
             >
               {isUploading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
