@@ -1,5 +1,32 @@
 import React from 'react';
-import { Loader2, Upload, FileText } from 'lucide-react';
+import { Loader2, Upload, FileText, Wifi, WifiOff } from 'lucide-react';
+
+/**
+ * ConnectionIndicator - Shows backend connection status
+ */
+const ConnectionIndicator = ({ status }) => {
+    if (status === 'online') {
+        return (
+            <div className="flex items-center gap-1.5 text-green-400" title="Connected">
+                <Wifi size={14} />
+                <span className="text-xs font-medium hidden sm:inline">Connected</span>
+            </div>
+        );
+    } else if (status === 'offline') {
+        return (
+            <div className="flex items-center gap-1.5 text-red-400" title="Offline">
+                <WifiOff size={14} />
+                <span className="text-xs font-medium hidden sm:inline">Offline</span>
+            </div>
+        );
+    }
+    return (
+        <div className="flex items-center gap-1.5 text-yellow-400 animate-pulse" title="Connecting...">
+            <Wifi size={14} />
+            <span className="text-xs font-medium hidden sm:inline">Connecting...</span>
+        </div>
+    );
+};
 
 /**
  * Header - Top navigation bar with logo, upload, and action buttons
@@ -11,6 +38,7 @@ export function Header({
     fileInputRef,
     onFileUpload,
     onNewChat,
+    connectionStatus,
 }) {
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -39,7 +67,12 @@ export function Header({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+                {/* Connection Status */}
+                <ConnectionIndicator status={connectionStatus} />
+
+                <div className="h-6 w-px bg-white/10" />
+
                 {/* Upload Status Indicator */}
                 {uploadStatus && (
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
@@ -66,7 +99,6 @@ export function Header({
                             />
                             <span>New Chat</span>
                         </button>
-                        <div className="h-6 w-px bg-white/10 mx-2" />
                     </>
                 )}
 
@@ -107,3 +139,4 @@ export function Header({
 }
 
 export default Header;
+

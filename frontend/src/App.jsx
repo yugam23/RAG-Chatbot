@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useChat } from './hooks/useChat';
 import { Header, ChatArea, ChatInput, SplashScreen } from './components';
+import ErrorBoundary from './components/ErrorBoundary';
 
 /**
  * App - Main application component
- * Now just composes the UI from smaller components
+ * Now wrapped in ErrorBoundary with connection status indicator
  */
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
@@ -15,16 +16,18 @@ const App = () => {
     isUploading,
     uploadStatus,
     uploadedFileName,
+    connectionStatus,
     fileInputRef,
     messagesEndRef,
     handleFileUpload,
     handleNewChat,
     handleClearChat,
     sendMessage,
+    abortRequest,
   } = useChat();
 
   return (
-    <>
+    <ErrorBoundary>
       <AnimatePresence mode="wait">
         {showSplash ? (
           <SplashScreen key="splash" onComplete={() => setShowSplash(false)} />
@@ -37,7 +40,7 @@ const App = () => {
             className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-900 to-black text-white selection:bg-blue-500/30"
           >
             {/* Main Glass Panel */}
-            <div className="w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl shadow-2xl relative">
+            <div className="w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden glass-panel relative">
 
               {/* Background Glow Effects */}
               <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
@@ -53,6 +56,7 @@ const App = () => {
                 fileInputRef={fileInputRef}
                 onFileUpload={handleFileUpload}
                 onNewChat={handleNewChat}
+                connectionStatus={connectionStatus}
               />
 
               {/* Chat Area */}
@@ -67,6 +71,7 @@ const App = () => {
               <ChatInput
                 onSend={sendMessage}
                 onClearChat={handleClearChat}
+                onAbort={abortRequest}
                 isLoading={isLoading}
                 showClearChat={!!uploadedFileName}
               />
@@ -75,7 +80,7 @@ const App = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </ErrorBoundary>
   );
 }
 

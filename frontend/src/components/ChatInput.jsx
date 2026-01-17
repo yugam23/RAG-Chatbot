@@ -7,6 +7,7 @@ import { Send } from 'lucide-react';
 export function ChatInput({
     onSend,
     onClearChat,
+    onAbort,
     isLoading,
     showClearChat
 }) {
@@ -53,16 +54,24 @@ export function ChatInput({
                     onKeyDown={handleKeyDown}
                     placeholder="Ask a question..."
                     disabled={isLoading}
-                    className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/10 focus:border-blue-500/50 rounded-xl px-4 py-3.5 pr-12 text-white placeholder-gray-500 outline-none transition-all shadow-inner disabled:opacity-50"
+                    className="glass-input w-full pr-12"
                 />
 
-                {/* Send Button */}
+                {/* Send / Stop Button */}
                 <button
-                    onClick={handleSubmit}
-                    disabled={!input.trim() || isLoading}
-                    className="absolute right-2 top-2 p-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-0 disabled:scale-75 transition-all shadow-lg shadow-blue-600/20"
+                    onClick={isLoading ? onAbort : handleSubmit}
+                    disabled={!isLoading && !input.trim()}
+                    className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all shadow-lg 
+                        ${isLoading
+                            ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30'
+                            : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white disabled:opacity-0 disabled:scale-75'
+                        }`}
                 >
-                    <Send className="w-4 h-4" />
+                    {isLoading ? (
+                        <div className="w-4 h-4 rounded-sm bg-current" />
+                    ) : (
+                        <Send className="w-4 h-4" />
+                    )}
                 </button>
             </div>
         </div>
