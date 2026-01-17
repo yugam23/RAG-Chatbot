@@ -24,6 +24,7 @@ from config import (
 
 # Import structured logging
 from logging_config import get_logger
+from models import StreamEvent
 
 logger = get_logger(__name__)
 
@@ -96,8 +97,10 @@ async def generate_chat_response(question: str):
             for doc in docs
         ]
         
+
+
         # Send sources first
-        yield json.dumps({"type": "sources", "data": sources}) + "\n"
+        yield StreamEvent(type="sources", data=sources).model_dump_json() + "\n"
         
         # Set up LLM chain
         prompt = ChatPromptTemplate.from_template(SYSTEM_PROMPT)
@@ -115,33 +118,33 @@ async def generate_chat_response(question: str):
                     "context": context,
                     "question": question
                 }):
-                    yield json.dumps({"type": "token", "data": chunk}) + "\n"
+                    yield StreamEvent(type="token", data=chunk).model_dump_json() + "\n"
                 break  # Success
                 
             except Exception as e:
                 if _is_rate_limit_error(e):
                     if attempt == CHAT_MAX_RETRIES - 1:
-                        yield json.dumps({
-                            "type": "error",
-                            "data": "System busy (Rate Limit). Please try again."
-                        }) + "\n"
+                        yield StreamEvent(
+                            type="error",
+                            data="System busy (Rate Limit). Please try again."
+                        ).model_dump_json() + "\n"
                         return
                     
                     delay = 5 * (2 ** attempt)
                     logger.warning("chat_rate_limit", attempt=attempt + 1, delay=delay)
                     await asyncio.sleep(delay)
                 else:
-                    yield json.dumps({
-                        "type": "error",
-                        "data": f"Error: {str(e)}"
-                    }) + "\n"
+                    yield StreamEvent(
+                        type="error",
+                        data=f"Error: {str(e)}"
+                    ).model_dump_json() + "\n"
                     return
                     
     except FileNotFoundError:
-        yield json.dumps({
-            "type": "error",
-            "data": "Please upload a document first."
-        }) + "\n"
+        yield StreamEvent(
+            type="error",
+            data="Please upload a document first."
+        ).model_dump_json() + "\n"
 
 
 def _is_rate_limit_error(error: Exception) -> bool:
