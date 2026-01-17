@@ -1,4 +1,6 @@
 import React from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 /**
  * Custom Markdown components for ReactMarkdown
@@ -12,20 +14,30 @@ export const markdownComponents = {
   ul: (props) => <ul className="list-disc pl-4 mb-2 space-y-1 text-gray-300" {...props} />,
   ol: (props) => <ol className="list-decimal pl-4 mb-2 space-y-1 text-gray-300" {...props} />,
   li: (props) => <li className="pl-1" {...props} />,
+
   code: ({ inline, className, children, ...props }) => {
     const match = /language-(\w+)/.exec(className || '');
 
-    if (!inline) {
+    if (!inline && match) {
       return (
-        <div className="relative my-4 rounded-lg overflow-hidden border border-white/10 bg-[#0d1117] shadow-lg">
+        <div className="relative my-4 rounded-lg overflow-hidden border border-white/10 shadow-lg">
           <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5 text-xs text-gray-400 font-mono">
-            <span>{match ? match[1] : 'code'}</span>
+            <span>{match[1]}</span>
           </div>
-          <div className="p-3 overflow-x-auto">
-            <code className="text-sm font-mono text-gray-200" {...props}>
-              {children}
-            </code>
-          </div>
+          <SyntaxHighlighter
+            style={vscDarkPlus}
+            language={match[1]}
+            PreTag="div"
+            customStyle={{
+              margin: 0,
+              padding: '1rem',
+              background: 'rgba(0, 0, 0, 0.4)',
+              fontSize: '0.875rem',
+            }}
+            {...props}
+          >
+            {String(children).replace(/\n$/, '')}
+          </SyntaxHighlighter>
         </div>
       );
     }
@@ -39,6 +51,7 @@ export const markdownComponents = {
       </code>
     );
   },
+
   blockquote: (props) => (
     <blockquote
       className="border-l-4 border-blue-500/50 pl-4 py-1 my-2 bg-blue-500/5 rounded-r italic text-gray-400"
