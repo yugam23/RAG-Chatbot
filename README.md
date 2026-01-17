@@ -704,55 +704,6 @@ Enable detailed logging:
 
 ---
 
-## 🚀 Deployment
-
-### Production Checklist
-
-- [ ] Set `GOOGLE_API_KEY` in production environment
-- [ ] Update `ALLOWED_ORIGINS` to production domain
-- [ ] Disable `reload=True` in `uvicorn.run()` (main.py)
-- [ ] Use a production WSGI server (e.g., Gunicorn)
-- [ ] Set up HTTPS with SSL certificates
-- [ ] Configure a reverse proxy (Nginx, Traefik)
-- [ ] Set up persistent storage for `chat_history.db` and `faiss_index/`
-- [ ] Implement proper logging aggregation (e.g., ELK stack)
-- [ ] Set up monitoring (uptime, error rates)
-
-### Example: Deploy with Docker (Future Enhancement)
-
-```dockerfile
-# Dockerfile (not included yet — coming soon!)
-FROM python:3.11-slim
-WORKDIR /app
-COPY backend/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY backend/ .
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
----
-
-## 🛣️ Roadmap
-
-### Planned Features
-
-- [ ] 🐳 **Docker Support**: One-command deployment with Docker Compose
-- [ ] 📊 **Multi-Document Support**: Upload and query multiple PDFs simultaneously
-- [ ] 🔍 **Source Citations**: Show which document chunks were used for each answer
-- [ ] 📥 **Export Chat**: Download conversation history as JSON/PDF
-- [ ] 🌙 **Dark/Light Mode Toggle**: User-selectable themes
-- [ ] 🔗 **URL Ingestion**: Support web pages and articles, not just PDFs
-- [ ] 🧠 **Advanced Models**: Support for GPT-4, Claude, and local LLMs
-- [ ] 🔐 **User Authentication**: Multi-user support with sessions
-- [ ] 📈 **Analytics Dashboard**: Query insights and usage stats
-- [ ] 🌐 **Internationalization**: Multi-language support
-
-### Community Requests
-
-Have an idea? [Open an issue](https://github.com/yugam23/RAG-Chatbot/issues) with the `enhancement` label!
-
----
-
 ## 🤝 Contributing
 
 Contributions are **highly welcome**! This project follows standard open-source practices.
@@ -791,16 +742,6 @@ Be respectful, inclusive, and constructive. We're all here to learn and build to
 ## 📄 License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
-
-```
-MIT License
-
-Copyright (c) 2026 Yugam
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction...
-```
 
 ---
 
