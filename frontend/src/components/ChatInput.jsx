@@ -71,10 +71,11 @@ export function ChatInput() {
           onClick={isLoading ? onAbort : handleSubmit}
           disabled={!isLoading && !input.trim()}
           className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all shadow-lg 
-                        ${isLoading
-              ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30'
-              : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white disabled:opacity-0 disabled:scale-75'
-            }`}
+                        ${
+                          isLoading
+                            ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30'
+                            : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white disabled:opacity-0 disabled:scale-75'
+                        }`}
           aria-label={isLoading ? 'Stop generating' : 'Send message'}
         >
           {isLoading ? (

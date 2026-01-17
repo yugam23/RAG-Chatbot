@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import * as api from '../services/api';
+import {
+  useHistoryQuery,
+  useStatusQuery,
+  useHealthQuery,
+  useUploadMutation,
+  useResetMutation,
+  useClearChatMutation,
+} from './useApiQueries';
 
 // LocalStorage keys
 const STORAGE_KEYS = {
@@ -7,16 +15,10 @@ const STORAGE_KEYS = {
   FILENAME: 'rag_chatbot_filename',
 };
 
-// Retry configuration
-const RETRY_CONFIG = {
-  maxRetries: 3,
-  baseDelay: 1000, // ms
-};
-
 /**
  * Custom hook for chat functionality
  * Manages messages, document state, and API interactions
- * Now with: abort controller, retry logic, localStorage persistence
+ * Refactored to use React Query for data fetching
  */
 export function useChat() {
   // Initialize state from localStorage if available
@@ -30,16 +32,46 @@ export function useChat() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploadedFileName, setUploadedFileName] = useState(() => {
     return localStorage.getItem(STORAGE_KEYS.FILENAME) || null;
   });
-  const [connectionStatus, setConnectionStatus] = useState('checking'); // 'online', 'offline', 'checking'
 
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const abortControllerRef = useRef(null);
+
+  // React Query hooks
+  const historyQuery = useHistoryQuery();
+  const statusQuery = useStatusQuery();
+  const healthQuery = useHealthQuery();
+  const uploadMutation = useUploadMutation();
+  const resetMutation = useResetMutation();
+  const clearChatMutation = useClearChatMutation();
+
+  // Derive connection status from health query
+  const connectionStatus = healthQuery.isLoading
+    ? 'checking'
+    : healthQuery.isError
+      ? 'offline'
+      : 'online';
+
+  // Derive isUploading from mutation state
+  const isUploading = uploadMutation.isPending;
+
+  // Sync server history with local state on successful fetch
+  useEffect(() => {
+    if (historyQuery.data?.length > 0) {
+      setMessages(historyQuery.data);
+    }
+  }, [historyQuery.data]);
+
+  // Sync server status with local state
+  useEffect(() => {
+    if (statusQuery.data?.filename) {
+      setUploadedFileName(statusQuery.data.filename);
+    }
+  }, [statusQuery.data]);
 
   // Persist messages to localStorage whenever they change
   useEffect(() => {
@@ -63,95 +95,29 @@ export function useChat() {
     }
   }, [uploadedFileName]);
 
-  // Check backend health on mount and periodically
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        const response = await fetch(`${api.API_URL}/health`, {
-          method: 'GET',
-          signal: AbortSignal.timeout(5000),
-        });
-        if (response.ok) {
-          setConnectionStatus('online');
-        } else {
-          setConnectionStatus('offline');
-        }
-      } catch {
-        setConnectionStatus('offline');
-      }
-    };
-
-    checkHealth();
-    const interval = setInterval(checkHealth, 30000); // Check every 30s
-    return () => clearInterval(interval);
-  }, []);
-
-  // Initialize: fetch history and status on mount (if online)
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const [history, status] = await Promise.all([api.fetchHistory(), api.fetchStatus()]);
-
-        // Only update if server has data (don't overwrite local with empty)
-        if (history.length > 0) {
-          setMessages(history);
-        }
-        if (status.filename) {
-          setUploadedFileName(status.filename);
-        }
-      } catch (err) {
-        console.error('Failed to initialize chat:', err);
-      }
-    };
-    init();
-  }, []);
-
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  /**
-   * Retry wrapper for API calls
-   */
-  const withRetry = useCallback(async (fn, retries = RETRY_CONFIG.maxRetries) => {
-    let lastError;
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        return await fn();
-      } catch (err) {
-        lastError = err;
-        if (attempt < retries - 1) {
-          const delay = RETRY_CONFIG.baseDelay * Math.pow(2, attempt);
-          console.warn(`Retry attempt ${attempt + 1} after ${delay}ms...`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-      }
-    }
-    throw lastError;
-  }, []);
-
-  // Handle file upload with retry
+  // Handle file upload with mutation
   const handleFileUpload = useCallback(
     async (file) => {
       if (!file) return;
 
-      setIsUploading(true);
       setUploadStatus('Indexing Document...');
 
       try {
-        await withRetry(() => api.uploadDocument(file));
+        await uploadMutation.mutateAsync(file);
         setUploadStatus('Document Ready!');
         setUploadedFileName(file.name);
         setTimeout(() => setUploadStatus(''), 3000);
       } catch (err) {
         console.error('Upload error:', err);
         setUploadStatus('Upload Failed');
-      } finally {
-        setIsUploading(false);
       }
     },
-    [withRetry]
+    [uploadMutation]
   );
 
   // Handle new chat (reset everything)
@@ -162,7 +128,7 @@ export function useChat() {
         abortControllerRef.current.abort();
       }
 
-      await api.resetSession();
+      await resetMutation.mutateAsync();
       setMessages([]);
       setUploadedFileName(null);
 
@@ -174,7 +140,7 @@ export function useChat() {
     } catch (err) {
       console.error('Failed to reset chat:', err);
     }
-  }, []);
+  }, [resetMutation]);
 
   // Handle clear chat (keep document)
   const handleClearChat = useCallback(async () => {
@@ -184,13 +150,13 @@ export function useChat() {
         abortControllerRef.current.abort();
       }
 
-      await api.clearChat();
+      await clearChatMutation.mutateAsync();
       setMessages([]);
       localStorage.removeItem(STORAGE_KEYS.MESSAGES);
     } catch (err) {
       console.error('Failed to clear chat:', err);
     }
-  }, []);
+  }, [clearChatMutation]);
 
   // Abort ongoing request
   const abortRequest = useCallback(() => {
