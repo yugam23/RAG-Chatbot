@@ -16,23 +16,23 @@ const DEFAULT_TIMEOUT = 10000;
  * @returns {Promise<Response>}
  */
 async function fetchWithTimeout(url, options = {}, timeout = DEFAULT_TIMEOUT) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-    try {
-        const response = await fetch(url, {
-            ...options,
-            signal: controller.signal,
-        });
-        return response;
-    } catch (error) {
-        if (error.name === 'AbortError') {
-            throw new Error(`Request timed out after ${timeout}ms`);
-        }
-        throw error;
-    } finally {
-        clearTimeout(timeoutId);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return response;
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error(`Request timed out after ${timeout}ms`);
     }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 /**
@@ -40,9 +40,9 @@ async function fetchWithTimeout(url, options = {}, timeout = DEFAULT_TIMEOUT) {
  * @returns {Promise<Array>} Array of message objects
  */
 export async function fetchHistory() {
-    const res = await fetchWithTimeout(`${API_URL}/history`);
-    if (!res.ok) throw new Error('Failed to fetch history');
-    return res.json();
+  const res = await fetchWithTimeout(`${API_URL}/history`);
+  if (!res.ok) throw new Error('Failed to fetch history');
+  return res.json();
 }
 
 /**
@@ -50,9 +50,9 @@ export async function fetchHistory() {
  * @returns {Promise<{filename: string|null}>}
  */
 export async function fetchStatus() {
-    const res = await fetchWithTimeout(`${API_URL}/status`);
-    if (!res.ok) throw new Error('Failed to fetch status');
-    return res.json();
+  const res = await fetchWithTimeout(`${API_URL}/status`);
+  if (!res.ok) throw new Error('Failed to fetch status');
+  return res.json();
 }
 
 /**
@@ -60,9 +60,9 @@ export async function fetchStatus() {
  * @returns {Promise<{status: string}>}
  */
 export async function resetSession() {
-    const res = await fetchWithTimeout(`${API_URL}/reset`, { method: 'POST' });
-    if (!res.ok) throw new Error('Failed to reset session');
-    return res.json();
+  const res = await fetchWithTimeout(`${API_URL}/reset`, { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to reset session');
+  return res.json();
 }
 
 /**
@@ -70,9 +70,9 @@ export async function resetSession() {
  * @returns {Promise<{status: string}>}
  */
 export async function clearChat() {
-    const res = await fetchWithTimeout(`${API_URL}/clear_chat`, { method: 'POST' });
-    if (!res.ok) throw new Error('Failed to clear chat');
-    return res.json();
+  const res = await fetchWithTimeout(`${API_URL}/clear_chat`, { method: 'POST' });
+  if (!res.ok) throw new Error('Failed to clear chat');
+  return res.json();
 }
 
 /**
@@ -81,24 +81,24 @@ export async function clearChat() {
  * @returns {Promise<{filename: string, status: string, chunks: number}>}
  */
 export async function uploadDocument(file) {
-    const formData = new FormData();
-    formData.append('file', file);
+  const formData = new FormData();
+  formData.append('file', file);
 
-    // Longer timeout for uploads (2 minutes)
-    const res = await fetchWithTimeout(
-        `${API_URL}/upload`,
-        {
-            method: 'POST',
-            body: formData,
-        },
-        120000  // 2 minute timeout for large file uploads
-    );
+  // Longer timeout for uploads (2 minutes)
+  const res = await fetchWithTimeout(
+    `${API_URL}/upload`,
+    {
+      method: 'POST',
+      body: formData,
+    },
+    120000 // 2 minute timeout for large file uploads
+  );
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || 'Upload failed');
-    }
-    return res.json();
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || 'Upload failed');
+  }
+  return res.json();
 }
 
 /**
@@ -108,17 +108,17 @@ export async function uploadDocument(file) {
  * @returns {Promise<Response>} Streaming response
  */
 export async function sendChatMessage(question) {
-    const res = await fetch(`${API_URL}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question }),
-    });
+  const res = await fetch(`${API_URL}/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question }),
+  });
 
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || 'Chat request failed');
-    }
-    return res;
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || 'Chat request failed');
+  }
+  return res;
 }
 
 export { API_URL };

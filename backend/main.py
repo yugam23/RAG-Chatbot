@@ -17,6 +17,7 @@ from config import (
     TEMP_DIR, 
     MAX_FILE_SIZE_BYTES,
     PDF_MAGIC_BYTES,
+    settings,
 )
 
 # Import centralized state management
@@ -94,7 +95,7 @@ def validate_pdf_file(content: bytes, filename: str) -> None:
         HTTPException: If validation fails
     """
     # Check file size
-    if len(content) > MAX_FILE_SIZE_BYTES:
+    if len(content) > (settings.MAX_FILE_SIZE_MB * 1024 * 1024):
         from config import MAX_FILE_SIZE_MB
         raise HTTPException(
             status_code=413,

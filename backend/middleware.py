@@ -68,7 +68,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         """Extract client IP, considering proxies"""
         forwarded = request.headers.get("X-Forwarded-For")
         if forwarded:
-            return forwarded.split(",")[0].strip()
+            return str(forwarded).split(",")[0].strip()
         return request.client.host if request.client else "unknown"
     
     def _cleanup_old_requests(self, client_ip: str, now: float):

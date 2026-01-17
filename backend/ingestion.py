@@ -81,7 +81,8 @@ def ingest_pdf(file_path: str) -> int:
                     raise  # Other error, fail immediately
 
     # 5. Save to disk
-    vectorstore.save_local(str(VECTOR_STORE_PATH))
+    if vectorstore is not None:
+        vectorstore.save_local(str(VECTOR_STORE_PATH))
     
     return len(chunks)
 

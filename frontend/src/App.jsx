@@ -41,7 +41,6 @@ const App = () => {
           >
             {/* Main Glass Panel */}
             <div className="w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden glass-panel relative">
-
               {/* Background Glow Effects */}
               <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[100px]" />
@@ -75,13 +74,12 @@ const App = () => {
                 isLoading={isLoading}
                 showClearChat={!!uploadedFileName}
               />
-
             </div>
           </motion.div>
         )}
       </AnimatePresence>
     </ErrorBoundary>
   );
-}
+};
 
 export default App;

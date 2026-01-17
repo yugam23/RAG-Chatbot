@@ -6,12 +6,12 @@ Structured JSON logging using structlog for production-ready observability
 import logging
 import sys
 import os
-from typing import Any
+from typing import Any, Optional
 
 import structlog
 
 
-def configure_logging(log_level: str = None) -> None:
+def configure_logging(log_level: Optional[str] = None) -> None:
     """
     Configure structured logging for the application.
     
@@ -63,7 +63,7 @@ def configure_logging(log_level: str = None) -> None:
     )
 
 
-def get_logger(name: str = None) -> structlog.BoundLogger:
+def get_logger(name: Optional[str] = None) -> structlog.BoundLogger:
     """
     Get a configured logger instance.
     
@@ -76,7 +76,7 @@ def get_logger(name: str = None) -> structlog.BoundLogger:
     return structlog.get_logger(name)
 
 
-def bind_request_context(request_id: str = None, **kwargs: Any) -> None:
+def bind_request_context(request_id: Optional[str] = None, **kwargs: Any) -> None:
     """
     Bind request context to all subsequent log messages.
     Use this at the start of request handling.
