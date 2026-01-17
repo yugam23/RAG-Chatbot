@@ -142,7 +142,8 @@ async def upload_document(file: UploadFile = File(...)):
     
     try:
         from ingestion import ingest_pdf
-        num_chunks = ingest_pdf(str(file_path))
+        from fastapi.concurrency import run_in_threadpool
+        num_chunks = await run_in_threadpool(ingest_pdf, str(file_path))
         
         # Update application state
         await app_state.set_document(file.filename)
