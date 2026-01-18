@@ -11,9 +11,9 @@ from typing import Callable
 
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
+from starlette.responses import Response, JSONResponse
 
-from config import RATE_LIMIT_UPLOADS, RATE_LIMIT_CHAT
+from config import RATE_LIMIT_UPLOADS, RATE_LIMIT_CHAT, MAX_REQUEST_BODY_BYTES, settings
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -100,3 +100,56 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         response.headers["X-Request-ID"] = request_id
         
         return response
+
+
+class RequestSizeLimitMiddleware(BaseHTTPMiddleware):
+    """
+    Limits request body size for non-upload endpoints.
+    Prevents abuse via massive JSON payloads.
+    """
+    EXEMPT_PATHS = {"/upload"}  # Upload has its own limit
+    
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        if request.url.path in self.EXEMPT_PATHS:
+            return await call_next(request)
+        
+        content_length = request.headers.get('content-length')
+        if content_length and int(content_length) > MAX_REQUEST_BODY_BYTES:
+            return JSONResponse(
+                status_code=413,
+                content={
+                    "error": "Request body too large",
+                    "code": "REQUEST_TOO_LARGE",
+                    "details": {"max_size_mb": settings.MAX_REQUEST_BODY_MB}
+                }
+            )
+        return await call_next(request)
+
+
+class APIKeyMiddleware(BaseHTTPMiddleware):
+    """
+    Optional API key authentication.
+    Only active when REQUIRE_AUTH=true in config.
+    """
+    EXEMPT_PATHS = {"/health", "/docs", "/openapi.json", "/redoc"}
+    
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        # Skip if auth is disabled
+        if not settings.REQUIRE_AUTH:
+            return await call_next(request)
+        
+        # Skip exempt paths
+        if request.url.path in self.EXEMPT_PATHS:
+            return await call_next(request)
+        
+        # Check for API key
+        api_key = request.headers.get("X-API-Key")
+        if not api_key or api_key not in settings.API_KEYS:
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": "Invalid or missing API key",
+                    "code": "UNAUTHORIZED"
+                }
+            )
+        return await call_next(request)

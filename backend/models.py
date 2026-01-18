@@ -2,16 +2,62 @@
 Pydantic Models for API Request/Response Validation
 """
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List, Literal
 from datetime import datetime
+
+
+# ============ Error Models ============
+
+class ErrorCodes:
+    """Standardized error codes for consistent API responses"""
+    VALIDATION_ERROR = "VALIDATION_ERROR"
+    FILE_TOO_LARGE = "FILE_TOO_LARGE"
+    INVALID_FILE_TYPE = "INVALID_FILE_TYPE"
+    RATE_LIMIT = "RATE_LIMIT"
+    NO_DOCUMENT = "NO_DOCUMENT"
+    LLM_ERROR = "LLM_ERROR"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+    REQUEST_TOO_LARGE = "REQUEST_TOO_LARGE"
+    UNAUTHORIZED = "UNAUTHORIZED"
+
+
+class ErrorResponse(BaseModel):
+    """Standardized error response format"""
+    error: str
+    code: str
+    details: Optional[dict] = None
+    request_id: Optional[str] = None
 
 
 # ============ Request Models ============
 
 class ChatRequest(BaseModel):
     """Request body for chat endpoint"""
-    question: str = Field(..., min_length=1, max_length=10000, description="User's question")
+    question: str = Field(..., min_length=1, max_length=4000, description="User's question")
+    
+    @field_validator('question')
+    @classmethod
+    def sanitize_question(cls, v: str) -> str:
+        """Sanitize input to prevent prompt injection and normalize whitespace"""
+        # Normalize excessive whitespace
+        v = ' '.join(v.split())
+        
+        # Block potential prompt injection patterns
+        dangerous_patterns = [
+            'ignore previous',
+            'disregard instructions', 
+            'forget your instructions',
+            'system:',
+            'assistant:',
+            'human:',
+        ]
+        v_lower = v.lower()
+        for pattern in dangerous_patterns:
+            if pattern in v_lower:
+                raise ValueError('Invalid input detected')
+        
+        return v
 
 
 # ============ Response Models ============
