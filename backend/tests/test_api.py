@@ -122,3 +122,42 @@ class TestRequestIDHeader:
         id1 = response1.headers.get("x-request-id")
         id2 = response2.headers.get("x-request-id")
         assert id1 != id2
+
+
+class TestChatEdgeCases:
+    """Edge case tests for chat functionality."""
+    
+    async def test_chat_without_document_returns_error(self, client: AsyncClient):
+        """Chat should fail gracefully when no document is uploaded."""
+        response = await client.post("/chat", json={"question": "What is this about?"})
+        # Should return 200 with streaming error, not crash
+        assert response.status_code == 200
+        # Response should contain error indication
+        content = response.text
+        assert "error" in content.lower() or "upload" in content.lower()
+    
+    async def test_chat_with_empty_question_rejected(self, client: AsyncClient):
+        """Empty question should be rejected with 422."""
+        response = await client.post("/chat", json={"question": ""})
+        assert response.status_code == 422
+    
+    async def test_chat_missing_question_field(self, client: AsyncClient):
+        """Missing question field should return 422."""
+        response = await client.post("/chat", json={})
+        assert response.status_code == 422
+
+
+class TestUploadEdgeCases:
+    """Edge case tests for upload functionality."""
+    
+    async def test_upload_missing_file(self, client: AsyncClient):
+        """Upload without file should return 422."""
+        response = await client.post("/upload")
+        assert response.status_code == 422
+    
+    async def test_upload_empty_filename(self, client: AsyncClient, sample_pdf_content: bytes):
+        """Upload with empty filename should be handled."""
+        files = {"file": ("", sample_pdf_content, "application/pdf")}
+        response = await client.post("/upload", files=files)
+        # Should reject - either 400 (no .pdf extension) or 422 (validation)
+        assert response.status_code in [400, 422]
