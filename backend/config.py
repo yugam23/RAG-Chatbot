@@ -51,10 +51,26 @@ class Settings(BaseSettings):
     RATE_LIMIT_UPLOADS: int = 10
     RATE_LIMIT_CHAT: int = 30
     PDF_MAGIC_BYTES: bytes = b"%PDF"
+    MAX_REQUEST_BODY_MB: int = 1  # For non-upload requests
+
+    # Authentication (optional, disabled by default)
+    REQUIRE_AUTH: bool = Field(default=False, description="Enable API key authentication")
+    API_KEYS_STR: str = Field(default="", alias="API_KEYS", description="Comma-separated API keys")
+
+    @computed_field
+    def API_KEYS(self) -> set:
+        """Parse comma-separated API keys into a set"""
+        if not self.API_KEYS_STR:
+            return set()
+        return {k.strip() for k in self.API_KEYS_STR.split(",") if k.strip()}
 
     @computed_field
     def MAX_FILE_SIZE_BYTES(self) -> int:
         return self.MAX_FILE_SIZE_MB * 1024 * 1024
+    
+    @computed_field
+    def MAX_REQUEST_BODY_BYTES(self) -> int:
+        return self.MAX_REQUEST_BODY_MB * 1024 * 1024
 
     model_config = SettingsConfigDict(
         env_file=".env", 
@@ -93,6 +109,9 @@ CHAT_MAX_RETRIES = settings.CHAT_MAX_RETRIES
 
 MAX_FILE_SIZE_MB = settings.MAX_FILE_SIZE_MB
 MAX_FILE_SIZE_BYTES = settings.MAX_FILE_SIZE_BYTES
+MAX_REQUEST_BODY_BYTES = settings.MAX_REQUEST_BODY_BYTES
 RATE_LIMIT_UPLOADS = settings.RATE_LIMIT_UPLOADS
 RATE_LIMIT_CHAT = settings.RATE_LIMIT_CHAT
 PDF_MAGIC_BYTES = settings.PDF_MAGIC_BYTES
+REQUIRE_AUTH = settings.REQUIRE_AUTH
+API_KEYS = settings.API_KEYS

@@ -6,27 +6,27 @@ Handles document retrieval and LLM response generation
 import json
 import asyncio
 
-from langchain_community.vectorstores import FAISS
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
-# Import ALL config from centralized module
+# Import config for LLM settings
 from config import (
-    VECTOR_STORE_PATH,
-    EMBEDDING_MODEL,
     LLM_MODEL,
     LLM_TEMPERATURE,
-    RETRIEVER_K,
     CHAT_MAX_RETRIES,
     GOOGLE_API_KEY,
 )
+
+# Import vector store abstraction
+from vector_store import vector_store
 
 # Import structured logging
 from logging_config import get_logger
 from models import StreamEvent
 
 logger = get_logger(__name__)
+
 
 
 # System prompt template
@@ -46,32 +46,6 @@ Question: {question}
 Answer:"""
 
 
-def get_retriever():
-    """
-    Load the vector store and create a retriever.
-    
-    Returns:
-        Retriever instance
-        
-    Raises:
-        FileNotFoundError: If vector store doesn't exist
-    """
-    if not VECTOR_STORE_PATH.exists():
-        raise FileNotFoundError("Index not found. Please upload a PDF first.")
-    
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model=EMBEDDING_MODEL,
-        google_api_key=GOOGLE_API_KEY
-    )
-    vectorstore = FAISS.load_local(
-        str(VECTOR_STORE_PATH),
-        embeddings,
-        allow_dangerous_deserialization=True
-    )
-    
-    return vectorstore.as_retriever(search_kwargs={"k": RETRIEVER_K})
-
-
 async def generate_chat_response(question: str):
     """
     Generate a streaming chat response.
@@ -83,9 +57,8 @@ async def generate_chat_response(question: str):
         JSON strings for SSE streaming
     """
     try:
-        # Get retriever and fetch relevant documents
-        retriever = get_retriever()
-        docs = retriever.invoke(question)
+        # Get relevant documents using vector store abstraction
+        docs = vector_store.similarity_search(question)
         context = "\n\n".join([d.page_content for d in docs])
         
         # Prepare source metadata

@@ -12,7 +12,7 @@ import shutil
 from config import ALLOWED_ORIGINS, DB_PATH, VECTOR_STORE_PATH
 from state import app_state
 from database import init_db
-from middleware import RateLimitMiddleware, RequestIDMiddleware
+from middleware import RateLimitMiddleware, RequestIDMiddleware, RequestSizeLimitMiddleware, APIKeyMiddleware
 from logging_config import get_logger
 
 # Import Routers
@@ -52,7 +52,9 @@ app = FastAPI(title="RAG Chatbot API", lifespan=lifespan)
 
 # Security Middleware (order matters: first added = outermost)
 app.add_middleware(RequestIDMiddleware)  # Add request ID to all requests
+app.add_middleware(APIKeyMiddleware)     # Optional API key auth
 app.add_middleware(RateLimitMiddleware)  # Rate limit uploads and chat
+app.add_middleware(RequestSizeLimitMiddleware)  # Block oversized requests
 
 # CORS Middleware - Uses ALLOWED_ORIGINS from config
 app.add_middleware(

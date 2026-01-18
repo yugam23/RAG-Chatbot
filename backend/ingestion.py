@@ -7,20 +7,18 @@ import time
 
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
-# Import ALL config from centralized module
+# Import config for chunking/retry settings
 from config import (
-    VECTOR_STORE_PATH,
-    EMBEDDING_MODEL,
     CHUNK_SIZE,
     CHUNK_OVERLAP,
     INGESTION_BATCH_SIZE,
     INGESTION_MAX_RETRIES,
     INGESTION_BASE_DELAY,
-    GOOGLE_API_KEY,
 )
+
+# Import vector store abstraction
+from vector_store import vector_store
 
 # Import structured logging
 from logging_config import get_logger
@@ -48,25 +46,17 @@ def ingest_pdf(file_path: str) -> int:
         chunk_overlap=CHUNK_OVERLAP
     )
     chunks = text_splitter.split_documents(documents)
+    
+    if len(chunks) == 0:
+        raise ValueError("PDF contains no extractable text")
 
-    # 3. Create embeddings
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model=EMBEDDING_MODEL,
-        google_api_key=GOOGLE_API_KEY
-    )
-    
-    # 4. Batch process with retry logic
-    vectorstore = None
-    
+    # 3. Batch process with retry logic using vector store abstraction
     for i in range(0, len(chunks), INGESTION_BATCH_SIZE):
         batch = chunks[i:i + INGESTION_BATCH_SIZE]
         
         for attempt in range(INGESTION_MAX_RETRIES):
             try:
-                if vectorstore is None:
-                    vectorstore = FAISS.from_documents(batch, embeddings)
-                else:
-                    vectorstore.add_documents(batch)
+                vector_store.add_documents(batch)
                 break  # Success
                 
             except Exception as e:
@@ -80,9 +70,8 @@ def ingest_pdf(file_path: str) -> int:
                 else:
                     raise  # Other error, fail immediately
 
-    # 5. Save to disk
-    if vectorstore is not None:
-        vectorstore.save_local(str(VECTOR_STORE_PATH))
+    # 4. Save to disk
+    vector_store.save()
     
     return len(chunks)
 
