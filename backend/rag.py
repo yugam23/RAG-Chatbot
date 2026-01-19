@@ -30,6 +30,8 @@ logger = get_logger(__name__)
 
 
 # System prompt template
+# This prompt instructs the LLM to act as a RAG (Retrieval Augmented Generation) agent.
+# It enforces strict adherence to the provided context to minimize hallucinations.
 SYSTEM_PROMPT = """You are an expert AI assistant designed to provide detailed, accurate, and helpful answers based on the provided context.
 
 Instructions:

@@ -25,7 +25,9 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
-    # Startup: Clear previous data
+    # Startup: Clear previous data to ensure a fresh session.
+    # This aligns with the "stateless" nature of this specific chatbot demo,
+    # preventing old data from bleeding into new user sessions.
     logger.info("startup_cleanup_started", message="Cleaning up old session data")
     
     if DB_PATH.exists():

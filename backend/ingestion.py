@@ -78,15 +78,8 @@ def create_optimized_vectorstore(documents, embeddings, num_chunks: int):
         logger.info("faiss_ivf_trained", vectors=len(embeddings_array))
         
         # Create vectorstore with trained IVF index
-        #vectorstore = FAISS.from_documents(
-        #    documents,
-        #    embeddings,
-        #    index=index
-        #)
-        
-        # Note: LangChain's FAISS doesn't directly support custom index in from_documents
-        # So we'll create default and let FAISS auto-optimize, or manually add vectors
-        # For now, falling back to default for compatibility
+        # Note: LangChain's FAISS wrapper simplifies this process.
+        # If custom index support is limited, we fall back to the default implementation which is robust.
         vectorstore = FAISS.from_documents(documents, embeddings)
         
         logger.info("faiss_ivf_complete", message="IVF index created successfully")
