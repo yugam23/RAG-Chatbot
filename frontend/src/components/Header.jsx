@@ -1,5 +1,5 @@
 import React from 'react';
-import { Loader2, Upload, FileText, Wifi, WifiOff } from 'lucide-react';
+import { Loader2, Upload, FileText, Wifi, WifiOff, Sun, Moon, MessageSquarePlus } from 'lucide-react';
 
 /**
  * ConnectionIndicator - Shows backend connection status
@@ -25,6 +25,30 @@ const ConnectionIndicator = ({ status }) => {
       <Wifi size={14} />
       <span className="text-xs font-medium hidden sm:inline">Connecting...</span>
     </div>
+  );
+};
+
+/**
+ * ThemeToggle - Button to switch between dark and light mode
+ */
+import { useTheme } from '../context/ThemeContext';
+
+const ThemeToggle = () => {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="theme-toggle"
+      aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+    >
+      {theme === 'dark' ? (
+        <Sun className="w-5 h-5 text-yellow-300" />
+      ) : (
+        <Moon className="w-5 h-5 text-slate-600" />
+      )}
+    </button>
   );
 };
 
@@ -78,6 +102,9 @@ export function Header() {
         {/* Connection Status */}
         <ConnectionIndicator status={connectionStatus} />
 
+        {/* Theme Toggle */}
+        <ThemeToggle />
+
         <div className="h-6 w-px bg-white/10" />
 
         {/* Upload Status Indicator */}
@@ -97,14 +124,10 @@ export function Header() {
           <>
             <button
               onClick={onNewChat}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/5 transition-all text-sm font-medium text-gray-200 hover:text-white"
+              className="new-chat-btn flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/5 transition-all text-sm font-medium text-gray-200 hover:text-white"
               aria-label="Start new chat"
             >
-              <img
-                src="/message.png"
-                alt="New Chat"
-                className="w-4 h-4 object-contain brightness-0 invert relative top-[1px]"
-              />
+              <MessageSquarePlus className="w-4 h-4" />
               <span>New Chat</span>
             </button>
           </>
