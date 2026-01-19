@@ -7,6 +7,7 @@ from config import TEMP_DIR, MAX_FILE_SIZE_MB, settings, PDF_MAGIC_BYTES
 from state import app_state
 from models import UploadResponse
 from ingestion import ingest_pdf
+from cache import DocumentCache
 from logging_config import logger
 
 router = APIRouter()
@@ -52,6 +53,10 @@ async def upload_document(file: UploadFile = File(...)):
     # Validate file (size, extension, magic bytes)
     validate_pdf_file(content, file.filename)
     
+    # Compute content hash for caching (Tier 4)
+    content_hash = DocumentCache.get_content_hash(content)
+    logger.debug("upload_hash_computed", hash=content_hash, filename=file.filename)
+    
     # Create temp directory if not exists
     TEMP_DIR.mkdir(exist_ok=True)
     
@@ -62,15 +67,23 @@ async def upload_document(file: UploadFile = File(...)):
         f.write(content)
     
     try:
-        num_chunks = await run_in_threadpool(ingest_pdf, str(file_path))
+        result = await run_in_threadpool(ingest_pdf, str(file_path), content_hash)
         
         # Update application state
         await app_state.set_document(file.filename)
         
+        # Prepare response with cache info
+        status = "Loaded from Cache" if result.get("cache_hit") else "Uploaded & Indexed"
+        chunks = result.get("chunks", 0)
+        
+        # Log cache status
+        if result.get("cache_hit"):
+            logger.info("upload_cached", filename=file.filename, hash=content_hash)
+        
         return UploadResponse(
             filename=file.filename,
-            status="Uploaded & Indexed",
-            chunks=num_chunks
+            status=status,
+            chunks=chunks if chunks != -1 else 0  # Don't return -1 to frontend
         )
     except ValueError as e:
         # Known validation errors

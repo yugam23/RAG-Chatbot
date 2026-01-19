@@ -23,6 +23,10 @@ faiss_index/
 temp/
 *.tmp
 
+# Cache
+backend/cache/
+cache/
+
 # Node
 node_modules/
 dist/
