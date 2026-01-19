@@ -5,6 +5,7 @@ import './index.css';
 
 import App from './App.jsx';
 import { ChatProvider } from './context/ChatContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,9 +19,11 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ChatProvider>
-        <App />
-      </ChatProvider>
+      <ThemeProvider>
+        <ChatProvider>
+          <App />
+        </ChatProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>
 );
