@@ -290,7 +290,6 @@ body {
 .keyboard-hint {
   font-size: 0.75rem;
   color: var(--text-muted);
-  display: flex;
   align-items: center;
   gap: 0.5rem;
 }

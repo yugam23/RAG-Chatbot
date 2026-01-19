@@ -34,16 +34,17 @@ const SplashScreen = ({ onComplete }) => {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950 px-4 w-full h-full"
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="flex items-center justify-center gap-6">
+      {/* Stack vertically on mobile, horizontally on desktop */}
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 w-full">
         {/* Icon */}
         <motion.img
           src="/chatbot.png"
           alt="Logo"
-          className="w-24 h-24 object-contain"
+          className="w-24 h-24 object-contain flex-shrink-0"
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{
@@ -65,7 +66,7 @@ const SplashScreen = ({ onComplete }) => {
           }}
           className="overflow-hidden whitespace-nowrap flex items-center"
         >
-          <h1 className="text-6xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent transform translate-y-[-2px] tracking-tight py-2 leading-tight">
+          <h1 className="text-4xl sm:text-6xl font-extrabold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent tracking-tight py-2 leading-tight text-center">
             RAG Chatbot
           </h1>
         </motion.div>
