@@ -3,9 +3,6 @@
 ## Status
 Accepted
 
-## Date
-2026-01-16
-
 ## Context
 We needed both a Large Language Model (LLM) for chat responses and an embedding model for document vectorization. Options considered:
 
