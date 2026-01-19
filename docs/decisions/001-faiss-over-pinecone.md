@@ -3,9 +3,6 @@
 ## Status
 Accepted
 
-## Date
-2026-01-16
-
 ## Context
 We needed a vector database for storing document embeddings to enable semantic search and retrieval for the RAG pipeline. Options considered:
 
@@ -51,6 +48,3 @@ The `VectorStoreInterface` abstraction allows swapping FAISS for any other provi
 2. Update config to use `VECTOR_STORE_TYPE=pinecone`
 3. No other code changes needed - the abstraction handles the rest
 
-## Related
-- [Tier 4 Performance: FAISS Index Optimization](../implementation_plan.md#task-45-faiss-index-optimization)
-- [vector_store.py](../../backend/vector_store.py)
