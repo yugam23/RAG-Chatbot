@@ -260,19 +260,6 @@ pytest tests/test_ingestion.py  # Test specific module
 
 </details>
 
-<details>
-<summary><h2>🤝 Contributing</h2></summary>
-
-Contributions are **highly welcome**!
-
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m "Add source citation feature"`)
-4. **Push** to your branch
-5. **Open** a Pull Request
-
-</details>
-
 ---
 
 <div align="center">
