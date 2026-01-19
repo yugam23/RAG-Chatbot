@@ -34,17 +34,17 @@ export function ChatInput() {
   };
 
   return (
-    <div className="p-5 border-t border-white/5 bg-black/20 backdrop-blur-md">
-      <div className="flex gap-3 relative max-w-4xl mx-auto">
-        {/* Clear Chat Button */}
+    <div className="p-3 sm:p-5 border-t border-white/5 bg-black/20 backdrop-blur-md">
+      <div className="flex gap-2 sm:gap-3 relative max-w-4xl mx-auto items-center">
+        {/* Clear Chat Button - Repositioned for mobile */}
         {showClearChat && (
           <button
             onClick={onClearChat}
-            className="clear-chat-btn absolute bottom-full mb-7 -left-12 p-2.5 rounded-full bg-black/40 hover:bg-blue-600/20 border border-white/10 hover:border-blue-500/30 transition-all text-gray-400 hover:text-blue-400 group backdrop-blur-md shadow-lg"
+            className="clear-chat-btn flex-shrink-0 p-2 sm:p-2.5 rounded-full bg-black/40 hover:bg-blue-600/20 border border-white/10 hover:border-blue-500/30 transition-all text-gray-400 hover:text-blue-400 group backdrop-blur-md shadow-lg"
             aria-label="Clear chat history"
           >
-            <Trash2 className="w-5 h-5" />
-            <span className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2.5 py-1 bg-black/90 border border-white/10 rounded-lg text-[10px] font-medium tracking-wide text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 group-hover:translate-y-0 pointer-events-none shadow-xl">
+            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="hidden sm:block absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-2.5 py-1 bg-black/90 border border-white/10 rounded-lg text-[10px] font-medium tracking-wide text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 group-hover:translate-y-0 pointer-events-none shadow-xl">
               Clear Chat
             </span>
           </button>
@@ -58,7 +58,7 @@ export function ChatInput() {
           onKeyDown={handleKeyDown}
           placeholder="Ask a question..."
           disabled={isLoading}
-          className="glass-input w-full pr-12"
+          className="glass-input flex-1 pr-12 text-sm sm:text-base"
           aria-label="Ask a question about your document"
         />
 
