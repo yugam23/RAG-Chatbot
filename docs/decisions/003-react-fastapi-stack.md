@@ -3,9 +3,6 @@
 ## Status
 Accepted
 
-## Date
-2026-01-16
-
 ## Context
 We needed to build a full-stack web application for document Q&A with:
 - Modern, responsive UI
