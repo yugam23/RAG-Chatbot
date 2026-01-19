@@ -13,7 +13,6 @@ import {
 const STORAGE_KEYS = {
   RECENT: 'rag_chatbot_recent',  // Only last 20 messages
   FILENAME: 'rag_chatbot_filename',
-  MESSAGES: 'rag_chatbot_messages', // Deprecated - for cleanup
 };
 
 // Maximum messages to cache locally (Tier 4)
@@ -91,10 +90,7 @@ export function useChat() {
     }
   }, [messages]);
 
-  // Cleanup: Remove old full history key on first load (Tier 4 migration)
-  useEffect(() => {
-    localStorage.removeItem(STORAGE_KEYS.MESSAGES);
-  }, []);
+
 
   // Persist filename to localStorage
   useEffect(() => {
@@ -244,7 +240,7 @@ export function useChat() {
       }
     } catch (err) {
       if (err.name === 'AbortError') {
-        console.log('Request was aborted');
+        // Request was aborted, no need to log
         return;
       }
       console.error('Chat error:', err);
@@ -259,12 +255,17 @@ export function useChat() {
   }, []);
 
   return {
-    // State
+    /** Array of chat messages */
     messages,
+    /** Whether the chatbot is currently generating a response */
     isLoading,
+    /** Whether a file is currently uploading */
     isUploading,
+    /** Status text for the upload process */
     uploadStatus,
+    /** Name of the currently active document */
     uploadedFileName,
+    /** Connection health status: 'online' | 'offline' | 'checking' */
     connectionStatus,
 
     // Refs
