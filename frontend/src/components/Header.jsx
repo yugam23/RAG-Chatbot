@@ -77,95 +77,93 @@ export function Header() {
   };
 
   return (
-    <header className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-black/20">
-      {/* Logo & Title */}
-      <div className="flex items-center gap-3">
-        <div className="relative">
+    <header className="px-3 sm:px-6 py-3 sm:py-4 border-b border-white/5 bg-black/20">
+      {/* Single-row responsive layout */}
+      <div className="flex items-center justify-between gap-2">
+        {/* Logo & Title */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <img
             src="/chatbot.png"
             alt="RAG Chatbot Logo"
-            className="w-12 h-12 object-contain hover:scale-110 transition-transform duration-300 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+            className="w-8 h-8 sm:w-12 sm:h-12 object-contain flex-shrink-0"
           />
-        </div>
-        <div>
-          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-white">
-            RAG Chatbot
-          </h1>
-          <p className="text-xs text-gray-400 font-medium tracking-wide">
-            INTELLIGENT DOCUMENT ASSISTANT
-          </p>
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-3">
-        {/* Connection Status */}
-        <ConnectionIndicator status={connectionStatus} />
-
-        {/* Theme Toggle */}
-        <ThemeToggle />
-
-        <div className="h-6 w-px bg-white/10" />
-
-        {/* Upload Status Indicator */}
-        {uploadStatus && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
-            {isUploading ? (
-              <Loader2 className="w-3 h-3 text-blue-400 animate-spin" />
-            ) : (
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            )}
-            <span className="text-xs text-blue-300 font-medium">{uploadStatus}</span>
+          <div className="min-w-0">
+            <h1 className="text-sm sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-white truncate">
+              RAG Chatbot
+            </h1>
+            <p className="text-[8px] sm:text-xs text-gray-400 font-medium tracking-wide hidden sm:block">
+              INTELLIGENT DOCUMENT ASSISTANT
+            </p>
           </div>
-        )}
+        </div>
 
-        {/* New Chat Button - Only show after upload */}
-        {uploadedFileName && (
-          <>
+        {/* Actions - compact on mobile */}
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          {/* Connection Status */}
+          <ConnectionIndicator status={connectionStatus} />
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
+          {/* Upload Status Indicator - hide text on mobile */}
+          {uploadStatus && (
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
+              {isUploading ? (
+                <Loader2 className="w-3 h-3 text-blue-400 animate-spin" />
+              ) : (
+                <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              )}
+              <span className="text-xs text-blue-300 font-medium">{uploadStatus}</span>
+            </div>
+          )}
+
+          {/* New Chat Button - Only show after upload */}
+          {uploadedFileName && (
             <button
               onClick={onNewChat}
-              className="new-chat-btn flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/5 transition-all text-sm font-medium text-gray-200 hover:text-white"
+              className="new-chat-btn p-2 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-white/10 hover:bg-white/15 border border-white/5 transition-all"
               aria-label="Start new chat"
+              title="New Chat"
             >
-              <MessageSquarePlus className="w-4 h-4" />
-              <span>New Chat</span>
+              <MessageSquarePlus className="w-4 h-4 text-gray-200" />
             </button>
-          </>
-        )}
+          )}
 
-        {/* Upload Button / File Name Display */}
-        {!uploadedFileName ? (
-          <>
-            <input
-              type="file"
-              accept=".pdf"
-              className="hidden"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              aria-label="Upload PDF document"
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 transition-all text-sm font-medium text-blue-200 hover:text-blue-100 disabled:opacity-50 disabled:cursor-not-allowed group"
-              aria-label="Upload PDF"
-            >
-              {isUploading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Upload className="w-4 h-4 text-blue-400 group-hover:text-blue-300 transition-colors" />
-              )}
-              <span>Upload PDF</span>
-            </button>
-          </>
-        ) : (
-          <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/10 border border-green-500/20">
-            <FileText className="w-4 h-4 text-green-400" />
-            <span className="text-sm font-medium text-green-100 truncate max-w-[200px]">
-              {uploadedFileName}
-            </span>
-          </div>
-        )}
+          {/* Upload Button / File Name Display */}
+          {!uploadedFileName ? (
+            <>
+              <input
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                aria-label="Upload PDF document"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+                className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium text-blue-200 hover:text-blue-100"
+                aria-label="Upload PDF"
+                title="Upload PDF"
+              >
+                {isUploading ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                ) : (
+                  <Upload className="w-4 h-4 text-blue-400" />
+                )}
+                <span className="hidden sm:inline">Upload PDF</span>
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1.5 rounded-lg sm:rounded-xl bg-green-500/10 border border-green-500/20 max-w-[100px] sm:max-w-[180px]">
+              <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400 flex-shrink-0" />
+              <span className="text-[10px] sm:text-xs font-medium text-green-100 truncate">
+                {uploadedFileName}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
