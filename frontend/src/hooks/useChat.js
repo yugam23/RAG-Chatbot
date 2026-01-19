@@ -68,10 +68,10 @@ export function useChat() {
 
   // Sync server status with local state
   useEffect(() => {
-    if (statusQuery.data?.filename) {
-      setUploadedFileName(statusQuery.data.filename);
+    if (statusQuery.isSuccess) {
+      setUploadedFileName(statusQuery.data.filename || null);
     }
-  }, [statusQuery.data]);
+  }, [statusQuery.data, statusQuery.isSuccess]);
 
   // Persist messages to localStorage whenever they change
   useEffect(() => {
