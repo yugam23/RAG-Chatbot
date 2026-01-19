@@ -9,11 +9,15 @@ import {
   useClearChatMutation,
 } from './useApiQueries';
 
-// LocalStorage keys
+// LocalStorage keys (Tier 4 - Optimized Strategy)
 const STORAGE_KEYS = {
-  MESSAGES: 'rag_chatbot_messages',
+  RECENT: 'rag_chatbot_recent',  // Only last 20 messages
   FILENAME: 'rag_chatbot_filename',
+  MESSAGES: 'rag_chatbot_messages', // Deprecated - for cleanup
 };
+
+// Maximum messages to cache locally (Tier 4)
+const MAX_LOCAL_MESSAGES = 20;
 
 /**
  * Custom hook for chat functionality
@@ -21,11 +25,12 @@ const STORAGE_KEYS = {
  * Refactored to use React Query for data fetching
  */
 export function useChat() {
-  // Initialize state from localStorage if available
+  // Initialize state - will be synced from server
   const [messages, setMessages] = useState(() => {
+    // Try to load recent messages as fallback
     try {
-      const saved = localStorage.getItem(STORAGE_KEYS.MESSAGES);
-      return saved ? JSON.parse(saved) : [];
+      const recent = localStorage.getItem(STORAGE_KEYS.RECENT);
+      return recent ? JSON.parse(recent) : [];
     } catch {
       return [];
     }
@@ -59,12 +64,15 @@ export function useChat() {
   // Derive isUploading from mutation state
   const isUploading = uploadMutation.isPending;
 
-  // Sync server history with local state on successful fetch
+  // Sync server history with local state on successful fetch (Tier 4)
   useEffect(() => {
     if (historyQuery.data?.length > 0) {
       setMessages(historyQuery.data);
+    } else if (historyQuery.isSuccess && historyQuery.data?.length === 0) {
+      // Server has no messages, clear local state
+      setMessages([]);
     }
-  }, [historyQuery.data]);
+  }, [historyQuery.data, historyQuery.isSuccess]);
 
   // Sync server status with local state
   useEffect(() => {
@@ -73,14 +81,20 @@ export function useChat() {
     }
   }, [statusQuery.data, statusQuery.isSuccess]);
 
-  // Persist messages to localStorage whenever they change
+  // Cache only recent messages to localStorage (Tier 4 optimization)
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
+      const recentMessages = messages.slice(-MAX_LOCAL_MESSAGES);
+      localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(recentMessages));
     } catch (e) {
-      console.warn('Failed to persist messages to localStorage:', e);
+      console.warn('Failed to persist recent messages to localStorage:', e);
     }
   }, [messages]);
+
+  // Cleanup: Remove old full history key on first load (Tier 4 migration)
+  useEffect(() => {
+    localStorage.removeItem(STORAGE_KEYS.MESSAGES);
+  }, []);
 
   // Persist filename to localStorage
   useEffect(() => {
@@ -133,7 +147,7 @@ export function useChat() {
       setUploadedFileName(null);
 
       // Clear localStorage
-      localStorage.removeItem(STORAGE_KEYS.MESSAGES);
+      localStorage.removeItem(STORAGE_KEYS.RECENT);
       localStorage.removeItem(STORAGE_KEYS.FILENAME);
 
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -152,7 +166,7 @@ export function useChat() {
 
       await clearChatMutation.mutateAsync();
       setMessages([]);
-      localStorage.removeItem(STORAGE_KEYS.MESSAGES);
+      localStorage.removeItem(STORAGE_KEYS.RECENT);
     } catch (err) {
       console.error('Failed to clear chat:', err);
     }
