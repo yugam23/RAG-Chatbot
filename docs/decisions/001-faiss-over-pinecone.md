@@ -48,3 +48,7 @@ The `VectorStoreInterface` abstraction allows swapping FAISS for any other provi
 2. Update config to use `VECTOR_STORE_TYPE=pinecone`
 3. No other code changes needed - the abstraction handles the rest
 
+## Related
+- [vector_store.py](../../backend/vector_store.py)
+
+  
