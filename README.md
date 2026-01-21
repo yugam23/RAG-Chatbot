@@ -36,7 +36,7 @@ Unlike traditional chatbots, RAG Chatbot **doesn't hallucinate** — it answers 
 ## 🎥 Demo
 
 <div align="center">
-  <video src="demo/demo.mp4" width="100%" controls autoplay muted loop playsinline>
+  <video src="https://github.com/yugam23/RAG-Chatbot/raw/master/demo/demo.mp4" width="100%" controls autoplay muted loop playsinline>
     Your browser does not support the video tag.
   </video>
 </div>
