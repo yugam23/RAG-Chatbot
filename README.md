@@ -36,9 +36,7 @@ Unlike traditional chatbots, RAG Chatbot **doesn't hallucinate** — it answers 
 ## 🎥 Demo
 
 <div align="center">
-  <a href="https://github.com/yugam23/RAG-Chatbot/raw/master/demo/demo.webm">
-    <img src="demo/thumbnail.svg" alt="Watch the Demo" width="100%">
-  </a>
+  <img src="demo/demo.webp" alt="RAG Chatbot Demo" width="100%">
 </div>
 
 ---
