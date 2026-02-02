@@ -46,8 +46,7 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Antigravity artifacts
-implementation_plan.md
-IMPLEMENTATION_PLAN.md
-walkthrough.md
 CODEBASE_DOCUMENTATION.md
+demo.mp4
+.agents/
+Imp/
