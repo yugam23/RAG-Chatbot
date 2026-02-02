@@ -12,7 +12,7 @@ export function ThemeProvider({ children }) {
     // Check localStorage first, then system preference, default to dark
     const saved = localStorage.getItem('rag_chatbot_theme');
     if (saved) return saved;
-    
+
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
       return 'light';
     }
@@ -23,13 +23,13 @@ export function ThemeProvider({ children }) {
     // Toggle class on document root
     document.documentElement.classList.toggle('light', theme === 'light');
     document.documentElement.classList.toggle('dark', theme === 'dark');
-    
+
     // Persist to localStorage
     localStorage.setItem('rag_chatbot_theme', theme);
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(t => t === 'dark' ? 'light' : 'dark');
+    setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
   };
 
   const value = {
@@ -39,11 +39,7 @@ export function ThemeProvider({ children }) {
     isLight: theme === 'light',
   };
 
-  return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export const useTheme = () => {

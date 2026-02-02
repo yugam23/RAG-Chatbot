@@ -1,5 +1,14 @@
 import React from 'react';
-import { Loader2, Upload, FileText, Wifi, WifiOff, Sun, Moon, MessageSquarePlus } from 'lucide-react';
+import {
+  Loader2,
+  Upload,
+  FileText,
+  Wifi,
+  WifiOff,
+  Sun,
+  Moon,
+  MessageSquarePlus,
+} from 'lucide-react';
 
 /**
  * ConnectionIndicator - Shows backend connection status
