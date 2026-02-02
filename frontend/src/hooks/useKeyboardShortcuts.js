@@ -11,49 +11,47 @@ import { useEffect, useCallback } from 'react';
  * - Ctrl/Cmd + Shift + N: New chat
  * - Escape: Abort current request or clear
  */
-export function useKeyboardShortcuts({
-    onFocusInput,
-    onNewChat,
-    onAbort,
-    inputRef
-}) {
-    const handleKeyDown = useCallback((e) => {
-        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-        const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+export function useKeyboardShortcuts({ onFocusInput, onNewChat, onAbort, inputRef }) {
+  const handleKeyDown = useCallback(
+    (e) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
 
-        // Ctrl/Cmd + K: Focus input
-        if (ctrlOrCmd && e.key === 'k') {
-            e.preventDefault();
-            if (inputRef?.current) {
-                inputRef.current.focus();
-            }
-            onFocusInput?.();
+      // Ctrl/Cmd + K: Focus input
+      if (ctrlOrCmd && e.key === 'k') {
+        e.preventDefault();
+        if (inputRef?.current) {
+          inputRef.current.focus();
         }
+        onFocusInput?.();
+      }
 
-        // Ctrl/Cmd + Shift + N: New chat
-        if (ctrlOrCmd && e.shiftKey && (e.key === 'n' || e.key === 'N')) {
-            e.preventDefault();
-            onNewChat?.();
-        }
+      // Ctrl/Cmd + Shift + N: New chat
+      if (ctrlOrCmd && e.shiftKey && (e.key === 'n' || e.key === 'N')) {
+        e.preventDefault();
+        onNewChat?.();
+      }
 
-        // Escape: Abort current request
-        if (e.key === 'Escape') {
-            onAbort?.();
-        }
-    }, [onFocusInput, onNewChat, onAbort, inputRef]);
+      // Escape: Abort current request
+      if (e.key === 'Escape') {
+        onAbort?.();
+      }
+    },
+    [onFocusInput, onNewChat, onAbort, inputRef]
+  );
 
-    useEffect(() => {
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [handleKeyDown]);
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 }
 
 /**
  * Get keyboard shortcut display text based on platform
  */
 export function getShortcutKey() {
-    const isMac = navigator.platform?.toUpperCase().indexOf('MAC') >= 0;
-    return isMac ? '⌘' : 'Ctrl';
+  const isMac = navigator.platform?.toUpperCase().indexOf('MAC') >= 0;
+  return isMac ? '⌘' : 'Ctrl';
 }
 
 export default useKeyboardShortcuts;

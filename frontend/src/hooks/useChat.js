@@ -11,7 +11,7 @@ import {
 
 // LocalStorage keys (Tier 4 - Optimized Strategy)
 const STORAGE_KEYS = {
-  RECENT: 'rag_chatbot_recent',  // Only last 20 messages
+  RECENT: 'rag_chatbot_recent', // Only last 20 messages
   FILENAME: 'rag_chatbot_filename',
 };
 
@@ -89,8 +89,6 @@ export function useChat() {
       console.warn('Failed to persist recent messages to localStorage:', e);
     }
   }, [messages]);
-
-
 
   // Persist filename to localStorage
   useEffect(() => {
@@ -219,17 +217,23 @@ export function useChat() {
           try {
             const json = JSON.parse(line);
             if (json.type === 'token') {
-              assistantMsg.content += json.data;
               setMessages((prev) => {
                 const newMsgs = [...prev];
-                newMsgs[newMsgs.length - 1] = { ...assistantMsg };
+                const lastMsg = newMsgs[newMsgs.length - 1];
+                newMsgs[newMsgs.length - 1] = {
+                  ...lastMsg,
+                  content: lastMsg.content + json.data,
+                };
                 return newMsgs;
               });
             } else if (json.type === 'error') {
-              assistantMsg.content += `\n\n**Error:** ${json.data}`;
               setMessages((prev) => {
                 const newMsgs = [...prev];
-                newMsgs[newMsgs.length - 1] = { ...assistantMsg };
+                const lastMsg = newMsgs[newMsgs.length - 1];
+                newMsgs[newMsgs.length - 1] = {
+                  ...lastMsg,
+                  content: lastMsg.content + `\n\n**Error:** ${json.data}`,
+                };
                 return newMsgs;
               });
             }
