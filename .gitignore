@@ -49,7 +49,14 @@ npm-debug.log*
 CODEBASE_DOCUMENTATION.md
 demo.mp4
 .agents/
-Imp/
+docs/
 .claude/
 .gemini/
 .planning/
+.gsd/
+.agent/
+adapters/
+scripts/
+GSD-STYLE.md
+PROJECT_RULES.md
+model_capabilities.yaml
