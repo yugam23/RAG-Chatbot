@@ -5,6 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import prettier from 'eslint-plugin-prettier';
 import eslintConfigPrettier from 'eslint-config-prettier';
 import { defineConfig, globalIgnores } from 'eslint/config';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -33,5 +34,24 @@ export default defineConfig([
       'prettier/prettier': 'warn', // Prettier errors show as warnings
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     },
+  },
+  // TypeScript files -- type-aware rules
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'warn',
+    },
+  },
+  // Disable type-aware rules on JS/JSX (not in any tsconfig include)
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [tseslint.configs.disableTypeChecked],
   },
 ]);
