@@ -50,3 +50,6 @@ CODEBASE_DOCUMENTATION.md
 demo.mp4
 .agents/
 Imp/
+.claude/
+.gemini/
+.planning/
