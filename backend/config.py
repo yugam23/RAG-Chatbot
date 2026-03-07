@@ -9,6 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, computed_field
 from typing import List
 
+
 class Settings(BaseSettings):
     # Base paths
     BASE_DIR: Path = Path(__file__).parent
@@ -17,17 +18,21 @@ class Settings(BaseSettings):
     DB_PATH: Path = BASE_DIR / "chat_history.db"
 
     # API Keys
-    GOOGLE_API_KEY: str = Field(..., description="Google API Key required for Embeddings and Chat")
+    GOOGLE_API_KEY: str = Field(
+        ..., description="Google API Key required for Embeddings and Chat"
+    )
 
     # CORS Settings
-    ALLOWED_ORIGINS_STR: str = Field(default="http://localhost:5173,http://localhost:5174", alias="ALLOWED_ORIGINS")
+    ALLOWED_ORIGINS_STR: str = Field(
+        default="http://localhost:5173,http://localhost:5174", alias="ALLOWED_ORIGINS"
+    )
 
     @computed_field
     def ALLOWED_ORIGINS(self) -> List[str]:
         return [origin.strip() for origin in self.ALLOWED_ORIGINS_STR.split(",")]
 
     # Vector Store Settings
-    EMBEDDING_MODEL: str = "models/text-embedding-004"
+    EMBEDDING_MODEL: str = "models/gemini-embedding-001"
     LLM_MODEL: str = "gemini-flash-latest"
     LLM_TEMPERATURE: float = 0.0
 
@@ -54,8 +59,12 @@ class Settings(BaseSettings):
     MAX_REQUEST_BODY_MB: int = 1  # For non-upload requests
 
     # Authentication (optional, disabled by default)
-    REQUIRE_AUTH: bool = Field(default=False, description="Enable API key authentication")
-    API_KEYS_STR: str = Field(default="", alias="API_KEYS", description="Comma-separated API keys")
+    REQUIRE_AUTH: bool = Field(
+        default=False, description="Enable API key authentication"
+    )
+    API_KEYS_STR: str = Field(
+        default="", alias="API_KEYS", description="Comma-separated API keys"
+    )
 
     @computed_field
     def API_KEYS(self) -> set:
@@ -67,16 +76,15 @@ class Settings(BaseSettings):
     @computed_field
     def MAX_FILE_SIZE_BYTES(self) -> int:
         return self.MAX_FILE_SIZE_MB * 1024 * 1024
-    
+
     @computed_field
     def MAX_REQUEST_BODY_BYTES(self) -> int:
         return self.MAX_REQUEST_BODY_MB * 1024 * 1024
 
     model_config = SettingsConfigDict(
-        env_file=".env", 
-        env_file_encoding="utf-8",
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
+
 
 # Instantiate settings
 # This will auto-load from .env and VALIDATE immediately.
