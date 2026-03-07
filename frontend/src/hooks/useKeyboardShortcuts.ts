@@ -4,6 +4,14 @@
  */
 
 import { useEffect, useCallback } from 'react';
+import type React from 'react';
+
+interface UseKeyboardShortcutsOptions {
+  onFocusInput?: () => void;
+  onNewChat?: () => void;
+  onAbort?: () => void;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+}
 
 /**
  * Global keyboard shortcuts:
@@ -11,9 +19,14 @@ import { useEffect, useCallback } from 'react';
  * - Ctrl/Cmd + Shift + N: New chat
  * - Escape: Abort current request or clear
  */
-export function useKeyboardShortcuts({ onFocusInput, onNewChat, onAbort, inputRef }) {
+export function useKeyboardShortcuts({
+  onFocusInput,
+  onNewChat,
+  onAbort,
+  inputRef,
+}: UseKeyboardShortcutsOptions): void {
   const handleKeyDown = useCallback(
-    (e) => {
+    (e: KeyboardEvent) => {
       const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
       const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
 
@@ -49,7 +62,7 @@ export function useKeyboardShortcuts({ onFocusInput, onNewChat, onAbort, inputRe
 /**
  * Get keyboard shortcut display text based on platform
  */
-export function getShortcutKey() {
+export function getShortcutKey(): string {
   const isMac = navigator.platform?.toUpperCase().indexOf('MAC') >= 0;
   return isMac ? '⌘' : 'Ctrl';
 }
