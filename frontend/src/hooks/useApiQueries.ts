@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as api from '../services/api';
+import type { HealthResponse } from '../types/api';
 
 // Query Keys
 export const queryKeys = {
-  history: ['chat', 'history'],
-  status: ['chat', 'status'],
-  health: ['chat', 'health'],
-};
+  history: ['chat', 'history'] as const,
+  status: ['chat', 'status'] as const,
+  health: ['chat', 'health'] as const,
+} as const;
 
 /**
  * Hook to fetch chat history
@@ -36,13 +37,13 @@ export function useStatusQuery() {
 export function useHealthQuery() {
   return useQuery({
     queryKey: queryKeys.health,
-    queryFn: async () => {
+    queryFn: async (): Promise<HealthResponse> => {
       const response = await fetch(`${api.API_URL}/health`, {
         method: 'GET',
         signal: AbortSignal.timeout(5000),
       });
       if (!response.ok) throw new Error('Backend offline');
-      return response.json();
+      return response.json() as Promise<HealthResponse>;
     },
     staleTime: 1000 * 30, // 30 seconds
     refetchInterval: 30000, // Poll every 30s
