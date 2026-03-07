@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import type React from 'react';
 import * as api from '../services/api';
+import type { Message, StreamEvent } from '../types/api';
 import {
   useHistoryQuery,
   useStatusQuery,
@@ -18,18 +20,34 @@ const STORAGE_KEYS = {
 // Maximum messages to cache locally (Tier 4)
 const MAX_LOCAL_MESSAGES = 20;
 
+export interface UseChatReturn {
+  messages: Message[];
+  isLoading: boolean;
+  isUploading: boolean;
+  uploadStatus: string;
+  uploadedFileName: string | null;
+  connectionStatus: 'online' | 'offline' | 'checking';
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  sendMessage: (input: string) => Promise<void>;
+  handleFileUpload: (file: File) => Promise<void>;
+  handleNewChat: () => Promise<void>;
+  handleClearChat: () => Promise<void>;
+  abortRequest: () => void;
+}
+
 /**
  * Custom hook for chat functionality
  * Manages messages, document state, and API interactions
  * Refactored to use React Query for data fetching
  */
-export function useChat() {
+export function useChat(): UseChatReturn {
   // Initialize state - will be synced from server
-  const [messages, setMessages] = useState(() => {
+  const [messages, setMessages] = useState<Message[]>(() => {
     // Try to load recent messages as fallback
     try {
       const recent = localStorage.getItem(STORAGE_KEYS.RECENT);
-      return recent ? JSON.parse(recent) : [];
+      return recent ? (JSON.parse(recent) as Message[]) : [];
     } catch {
       return [];
     }
@@ -37,13 +55,13 @@ export function useChat() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
-  const [uploadedFileName, setUploadedFileName] = useState(() => {
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(() => {
     return localStorage.getItem(STORAGE_KEYS.FILENAME) || null;
   });
 
-  const fileInputRef = useRef(null);
-  const messagesEndRef = useRef(null);
-  const abortControllerRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // React Query hooks
   const historyQuery = useHistoryQuery();
@@ -54,7 +72,7 @@ export function useChat() {
   const clearChatMutation = useClearChatMutation();
 
   // Derive connection status from health query
-  const connectionStatus = healthQuery.isLoading
+  const connectionStatus: 'online' | 'offline' | 'checking' = healthQuery.isLoading
     ? 'checking'
     : healthQuery.isError
       ? 'offline'
@@ -65,9 +83,9 @@ export function useChat() {
 
   // Sync server history with local state on successful fetch (Tier 4)
   useEffect(() => {
-    if (historyQuery.data?.length > 0) {
+    if (historyQuery.data && historyQuery.data.length > 0) {
       setMessages(historyQuery.data);
-    } else if (historyQuery.isSuccess && historyQuery.data?.length === 0) {
+    } else if (historyQuery.isSuccess && historyQuery.data && historyQuery.data.length === 0) {
       // Server has no messages, clear local state
       setMessages([]);
     }
@@ -110,7 +128,7 @@ export function useChat() {
 
   // Handle file upload with mutation
   const handleFileUpload = useCallback(
-    async (file) => {
+    async (file: File): Promise<void> => {
       if (!file) return;
 
       setUploadStatus('Indexing Document...');
@@ -129,7 +147,7 @@ export function useChat() {
   );
 
   // Handle new chat (reset everything)
-  const handleNewChat = useCallback(async () => {
+  const handleNewChat = useCallback(async (): Promise<void> => {
     try {
       // Abort any ongoing request
       if (abortControllerRef.current) {
@@ -151,7 +169,7 @@ export function useChat() {
   }, [resetMutation]);
 
   // Handle clear chat (keep document)
-  const handleClearChat = useCallback(async () => {
+  const handleClearChat = useCallback(async (): Promise<void> => {
     try {
       // Abort any ongoing request
       if (abortControllerRef.current) {
@@ -167,7 +185,7 @@ export function useChat() {
   }, [clearChatMutation]);
 
   // Abort ongoing request
-  const abortRequest = useCallback(() => {
+  const abortRequest = useCallback((): void => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
@@ -176,7 +194,7 @@ export function useChat() {
   }, []);
 
   // Send a message with abort support
-  const sendMessage = useCallback(async (input) => {
+  const sendMessage = useCallback(async (input: string): Promise<void> => {
     if (!input.trim()) return;
 
     // Abort any previous request
@@ -187,15 +205,19 @@ export function useChat() {
     // Create new abort controller
     abortControllerRef.current = new AbortController();
 
-    const userMsg = { role: 'user', content: input };
+    const userMsg: Message = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
 
     try {
       const response = await api.sendChatMessage(input);
+      // API-03: Response.body is ReadableStream | null in DOM types
+      if (response.body === null) {
+        throw new Error('Response body is null — streaming not supported in this environment');
+      }
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
-      let assistantMsg = { role: 'assistant', content: '' };
+      const assistantMsg: Message = { role: 'assistant', content: '' };
 
       setMessages((prev) => [...prev, assistantMsg]);
 
@@ -215,14 +237,14 @@ export function useChat() {
         for (const line of lines) {
           if (!line) continue;
           try {
-            const json = JSON.parse(line);
+            const json = JSON.parse(line) as StreamEvent;
             if (json.type === 'token') {
               setMessages((prev) => {
                 const newMsgs = [...prev];
                 const lastMsg = newMsgs[newMsgs.length - 1];
                 newMsgs[newMsgs.length - 1] = {
                   ...lastMsg,
-                  content: lastMsg.content + json.data,
+                  content: lastMsg.content + (json.data as string),
                 };
                 return newMsgs;
               });
@@ -232,7 +254,7 @@ export function useChat() {
                 const lastMsg = newMsgs[newMsgs.length - 1];
                 newMsgs[newMsgs.length - 1] = {
                   ...lastMsg,
-                  content: lastMsg.content + `\n\n**Error:** ${json.data}`,
+                  content: lastMsg.content + `\n\n**Error:** ${json.data as string}`,
                 };
                 return newMsgs;
               });
@@ -243,7 +265,7 @@ export function useChat() {
         }
       }
     } catch (err) {
-      if (err.name === 'AbortError') {
+      if ((err as Error).name === 'AbortError') {
         // Request was aborted, no need to log
         return;
       }
