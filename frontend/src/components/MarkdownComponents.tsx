@@ -1,12 +1,12 @@
-import React from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import type { Components } from 'react-markdown';
 
 /**
  * Custom Markdown components for ReactMarkdown
  * Extracted for reusability and cleaner code
  */
-export const markdownComponents = {
+export const markdownComponents: Components = {
   h1: (props) => <h1 className="text-xl font-bold mb-2 text-white" {...props} />,
   h2: (props) => <h2 className="text-lg font-semibold mb-2 text-white" {...props} />,
   h3: (props) => <h3 className="text-md font-semibold mb-1 text-white" {...props} />,
@@ -15,10 +15,10 @@ export const markdownComponents = {
   ol: (props) => <ol className="list-decimal pl-4 mb-2 space-y-1 text-gray-300" {...props} />,
   li: (props) => <li className="pl-1" {...props} />,
 
-  code: ({ inline, className, children, ...props }) => {
+  code({ children, className, node: _node, ...rest }) {
     const match = /language-(\w+)/.exec(className || '');
 
-    if (!inline && match) {
+    if (match) {
       return (
         <div className="relative my-4 rounded-lg overflow-hidden border border-white/10 shadow-lg">
           <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5 text-xs text-gray-400 font-mono">
@@ -34,7 +34,6 @@ export const markdownComponents = {
               background: 'rgba(0, 0, 0, 0.4)',
               fontSize: '0.875rem',
             }}
-            {...props}
           >
             {String(children).replace(/\n$/, '')}
           </SyntaxHighlighter>
@@ -45,7 +44,7 @@ export const markdownComponents = {
     return (
       <code
         className="px-1.5 py-0.5 rounded-md bg-white/10 text-blue-200 font-mono text-xs border border-white/5"
-        {...props}
+        {...rest}
       >
         {children}
       </code>
@@ -65,5 +64,3 @@ export const markdownComponents = {
     />
   ),
 };
-
-export default markdownComponents;
