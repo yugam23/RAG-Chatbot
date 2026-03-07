@@ -46,7 +46,7 @@ export default defineConfig([
       },
     },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
   // Disable type-aware rules on JS/JSX (not in any tsconfig include)
