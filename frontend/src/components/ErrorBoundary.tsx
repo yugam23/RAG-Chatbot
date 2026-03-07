@@ -4,11 +4,23 @@
  * logs those errors, and displays a fallback UI.
  */
 
-import React, { Component } from 'react';
+import { Component } from 'react';
+import type { ReactNode, ErrorInfo } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
-class ErrorBoundary extends Component {
-  constructor(props) {
+interface ErrorBoundaryProps {
+  children: ReactNode;
+  showDetails?: boolean;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+}
+
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
       hasError: false,
@@ -17,12 +29,12 @@ class ErrorBoundary extends Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     // Update state so the next render will show the fallback UI
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log the error to console (future: send to monitoring service)
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     this.setState({ errorInfo });
@@ -31,11 +43,11 @@ class ErrorBoundary extends Component {
     // errorReportingService.log({ error, errorInfo });
   }
 
-  handleRetry = () => {
+  handleRetry = (): void => {
     this.setState({ hasError: false, error: null, errorInfo: null });
   };
 
-  render() {
+  render(): ReactNode {
     if (this.state.hasError) {
       // Fallback UI
       return (
@@ -45,7 +57,7 @@ class ErrorBoundary extends Component {
             <h2 className="text-2xl font-bold text-white mb-2">Something went wrong</h2>
             <p className="text-slate-400 mb-6">We're sorry, but something unexpected happened.</p>
 
-            {this.props.showDetails && this.state.error && (
+            {(this.props.showDetails ?? import.meta.env.DEV) && this.state.error && (
               <details className="text-left mb-6 bg-black/40 p-4 rounded-lg max-h-48 overflow-auto border border-white/5">
                 <summary className="cursor-pointer text-slate-300 font-medium mb-2 hover:text-white transition-colors">
                   Error Details
@@ -76,10 +88,5 @@ class ErrorBoundary extends Component {
     return this.props.children;
   }
 }
-
-// Default props
-ErrorBoundary.defaultProps = {
-  showDetails: import.meta.env.DEV,
-};
 
 export default ErrorBoundary;
