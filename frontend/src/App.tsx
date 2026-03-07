@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { AnimatePresence, motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { useState, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 import { Header, ChatArea, ChatInput, SplashScreen } from './components';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -11,9 +11,9 @@ import { useChatContext } from './context/ChatContext';
  * Now wrapped in ErrorBoundary with connection status indicator
  * Keyboard shortcuts: Ctrl+K (focus), Ctrl+Shift+N (new chat), Escape (abort)
  */
-const App = () => {
+const App = (): JSX.Element => {
   const [showSplash, setShowSplash] = useState(true);
-  const inputRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Get chat context for keyboard shortcuts
   const { handleNewChat, abortRequest } = useChatContext();
