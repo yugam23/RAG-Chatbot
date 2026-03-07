@@ -80,7 +80,7 @@ export function Header(): JSX.Element {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
-    if (file) onFileUpload(file);
+    if (file) void onFileUpload(file);
   };
 
   return (
@@ -127,7 +127,7 @@ export function Header(): JSX.Element {
           {/* New Chat Button - Only show after upload */}
           {uploadedFileName && (
             <button
-              onClick={onNewChat}
+              onClick={() => { void onNewChat(); }}
               className="new-chat-btn p-2 sm:px-3 sm:py-1.5 rounded-lg sm:rounded-xl bg-white/10 hover:bg-white/15 border border-white/5 transition-all"
               aria-label="Start new chat"
               title="New Chat"

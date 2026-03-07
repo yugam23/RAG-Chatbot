@@ -20,11 +20,11 @@ const App = (): JSX.Element => {
 
   // Register keyboard shortcuts
   useKeyboardShortcuts({
-    onNewChat: handleNewChat,
+    onNewChat: () => { void handleNewChat(); },
     onAbort: abortRequest,
     onFocusInput: () => {
       // Focus the input element
-      const input = document.querySelector('.glass-input');
+      const input = document.querySelector<HTMLInputElement>('.glass-input');
       if (input) input.focus();
     },
     inputRef,

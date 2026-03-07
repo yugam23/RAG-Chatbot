@@ -15,7 +15,7 @@ export const markdownComponents: Components = {
   ol: (props) => <ol className="list-decimal pl-4 mb-2 space-y-1 text-gray-300" {...props} />,
   li: (props) => <li className="pl-1" {...props} />,
 
-  code({ children, className, node: _node, ...rest }) {
+  code({ children, className, ...rest }) {
     const match = /language-(\w+)/.exec(className || '');
 
     if (match) {
@@ -35,7 +35,7 @@ export const markdownComponents: Components = {
               fontSize: '0.875rem',
             }}
           >
-            {String(children).replace(/\n$/, '')}
+            {(children as string).replace(/\n$/, '')}
           </SyntaxHighlighter>
         </div>
       );

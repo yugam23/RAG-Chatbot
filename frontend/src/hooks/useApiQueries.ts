@@ -60,7 +60,7 @@ export function useUploadMutation() {
     mutationFn: api.uploadDocument,
     onSuccess: () => {
       // Invalidate status query to refetch
-      queryClient.invalidateQueries({ queryKey: queryKeys.status });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.status });
     },
   });
 }
@@ -75,7 +75,7 @@ export function useResetMutation() {
     mutationFn: api.resetSession,
     onSuccess: () => {
       // Invalidate all chat-related queries
-      queryClient.invalidateQueries({ queryKey: ['chat'] });
+      void queryClient.invalidateQueries({ queryKey: ['chat'] });
     },
   });
 }
@@ -90,7 +90,7 @@ export function useClearChatMutation() {
     mutationFn: api.clearChat,
     onSuccess: () => {
       // Invalidate history query
-      queryClient.invalidateQueries({ queryKey: queryKeys.history });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.history });
     },
   });
 }

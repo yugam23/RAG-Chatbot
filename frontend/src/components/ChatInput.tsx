@@ -16,9 +16,9 @@ export function ChatInput(): JSX.Element {
   const showClearChat = !!uploadedFileName;
   const [input, setInput] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = (): void => {
     if (!input.trim() || isLoading) return;
-    onSend(input);
+    void onSend(input);
     setInput('');
   };
 
@@ -35,7 +35,7 @@ export function ChatInput(): JSX.Element {
         {/* Clear Chat Button - Repositioned for mobile */}
         {showClearChat && (
           <button
-            onClick={onClearChat}
+            onClick={() => { void onClearChat(); }}
             className="clear-chat-btn flex-shrink-0 p-2 sm:p-2.5 rounded-full bg-black/40 hover:bg-blue-600/20 border border-white/10 hover:border-blue-500/30 transition-all text-gray-400 hover:text-blue-400 group backdrop-blur-md shadow-lg"
             aria-label="Clear chat history"
           >

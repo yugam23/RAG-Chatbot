@@ -34,7 +34,7 @@ const SplashScreen = ({ onComplete }: SplashScreenProps): JSX.Element => {
       onComplete();
     };
 
-    sequence();
+    void sequence();
   }, [onComplete]);
 
   return (
