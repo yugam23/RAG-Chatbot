@@ -1,16 +1,11 @@
-import React from 'react';
 import { FileText, Loader2, Bot } from 'lucide-react';
 import { ChatMessage } from './ChatMessage';
-
-/**
- * ChatArea - Main chat display area with message list and empty states
- */
 import { useChatContext } from '../context/ChatContext';
 
 /**
  * ChatArea - Main chat display area with message list and empty states
  */
-export function ChatArea() {
+export function ChatArea(): JSX.Element {
   const { messages, messagesEndRef, uploadedFileName, isLoading } = useChatContext();
   // Filter out empty assistant messages (we'll show "Thinking..." instead)
   const visibleMessages = messages.filter((msg, idx) => {

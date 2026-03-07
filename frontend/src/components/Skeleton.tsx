@@ -3,13 +3,16 @@
  * Loading placeholders for better UX during data fetching
  */
 
-import React from 'react';
 import './Skeleton.css';
+
+interface MessageSkeletonProps {
+  isUser?: boolean;
+}
 
 /**
  * MessageSkeleton - Loading placeholder for chat messages
  */
-export function MessageSkeleton({ isUser = false }) {
+export function MessageSkeleton({ isUser = false }: MessageSkeletonProps): JSX.Element {
   return (
     <div className={`message-skeleton ${isUser ? 'user' : 'assistant'}`}>
       <div className="skeleton-avatar" />
@@ -25,7 +28,7 @@ export function MessageSkeleton({ isUser = false }) {
 /**
  * DocumentSkeleton - Loading placeholder for document processing
  */
-export function DocumentSkeleton() {
+export function DocumentSkeleton(): JSX.Element {
   return (
     <div className="document-skeleton">
       <div className="skeleton-icon pulse" />
@@ -40,7 +43,7 @@ export function DocumentSkeleton() {
 /**
  * ChatAreaSkeleton - Loading placeholder for the entire chat area
  */
-export function ChatAreaSkeleton() {
+export function ChatAreaSkeleton(): JSX.Element {
   return (
     <div className="chat-area-skeleton">
       <MessageSkeleton isUser={false} />

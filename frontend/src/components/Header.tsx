@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Loader2,
   Upload,
@@ -9,11 +8,17 @@ import {
   Moon,
   MessageSquarePlus,
 } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { useChatContext } from '../context/ChatContext';
 
 /**
  * ConnectionIndicator - Shows backend connection status
  */
-const ConnectionIndicator = ({ status }) => {
+interface ConnectionIndicatorProps {
+  status: string;
+}
+
+const ConnectionIndicator = ({ status }: ConnectionIndicatorProps): JSX.Element => {
   if (status === 'online') {
     return (
       <div className="flex items-center gap-1.5 text-green-400" title="Connected">
@@ -40,9 +45,7 @@ const ConnectionIndicator = ({ status }) => {
 /**
  * ThemeToggle - Button to switch between dark and light mode
  */
-import { useTheme } from '../context/ThemeContext';
-
-const ThemeToggle = () => {
+const ThemeToggle = (): JSX.Element => {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -64,12 +67,7 @@ const ThemeToggle = () => {
 /**
  * Header - Top navigation bar with logo, upload, and action buttons
  */
-import { useChatContext } from '../context/ChatContext';
-
-/**
- * Header - Top navigation bar with logo, upload, and action buttons
- */
-export function Header() {
+export function Header(): JSX.Element {
   const {
     uploadedFileName,
     uploadStatus,
@@ -80,8 +78,8 @@ export function Header() {
     connectionStatus,
   } = useChatContext();
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const file = e.target.files?.[0];
     if (file) onFileUpload(file);
   };
 

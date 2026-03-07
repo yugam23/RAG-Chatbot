@@ -1,14 +1,17 @@
-import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Bot, User } from 'lucide-react';
 import { markdownComponents } from './MarkdownComponents';
+import type { Message } from '../types/api';
+
+interface ChatMessageProps {
+  message: Message;
+}
 
 /**
  * ChatMessage - Renders a single chat message bubble
- * @param {{role: 'user' | 'assistant', content: string}} message
  */
-export function ChatMessage({ message }) {
+export function ChatMessage({ message }: ChatMessageProps): JSX.Element {
   const isUser = message.role === 'user';
 
   return (

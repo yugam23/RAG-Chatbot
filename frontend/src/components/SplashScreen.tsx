@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 
 /**
  * SplashScreen Component
@@ -10,8 +10,13 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
  * 3. Compete unit remains centered
  * 4. Fades out
  */
-const SplashScreen = ({ onComplete }) => {
-  const [step, setStep] = useState('initial'); // initial -> text -> complete
+
+interface SplashScreenProps {
+  onComplete: () => void;
+}
+
+const SplashScreen = ({ onComplete }: SplashScreenProps): JSX.Element => {
+  const [step, setStep] = useState<'initial' | 'text' | 'complete'>('initial');
 
   useEffect(() => {
     // Sequence timing

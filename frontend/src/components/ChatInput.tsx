@@ -1,15 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Send, Trash2 } from 'lucide-react';
-
-/**
- * ChatInput - Message input field with send button and clear chat action
- */
 import { useChatContext } from '../context/ChatContext';
 
 /**
  * ChatInput - Message input field with send button and clear chat action
  */
-export function ChatInput() {
+export function ChatInput(): JSX.Element {
   const {
     sendMessage: onSend,
     handleClearChat: onClearChat,
@@ -26,7 +22,7 @@ export function ChatInput() {
     setInput('');
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
@@ -66,7 +62,7 @@ export function ChatInput() {
         <button
           onClick={isLoading ? onAbort : handleSubmit}
           disabled={!isLoading && !input.trim()}
-          className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all shadow-lg 
+          className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-all shadow-lg
                         ${
                           isLoading
                             ? 'bg-red-500/20 hover:bg-red-500/30 text-red-200 border border-red-500/30'
