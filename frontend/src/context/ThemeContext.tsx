@@ -4,14 +4,25 @@
  */
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
 
-const ThemeContext = createContext();
+export interface ThemeContextValue {
+  theme: 'dark' | 'light';
+  toggleTheme: () => void;
+  isDark: boolean;
+  isLight: boolean;
+}
 
-export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => {
-    // Check localStorage first, then system preference, default to dark
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+
+interface ThemeProviderProps {
+  children: ReactNode;
+}
+
+export function ThemeProvider({ children }: ThemeProviderProps) {
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('rag_chatbot_theme');
-    if (saved) return saved;
+    if (saved === 'light' || saved === 'dark') return saved;
 
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
       return 'light';
@@ -20,19 +31,16 @@ export function ThemeProvider({ children }) {
   });
 
   useEffect(() => {
-    // Toggle class on document root
     document.documentElement.classList.toggle('light', theme === 'light');
     document.documentElement.classList.toggle('dark', theme === 'dark');
-
-    // Persist to localStorage
     localStorage.setItem('rag_chatbot_theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
+  const toggleTheme = (): void => {
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'));
   };
 
-  const value = {
+  const value: ThemeContextValue = {
     theme,
     toggleTheme,
     isDark: theme === 'dark',
@@ -42,9 +50,9 @@ export function ThemeProvider({ children }) {
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
-export const useTheme = () => {
+export const useTheme = (): ThemeContextValue => {
   const context = useContext(ThemeContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   return context;
