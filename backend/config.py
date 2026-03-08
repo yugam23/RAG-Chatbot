@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     TEMP_DIR: Path = BASE_DIR / "temp"
     VECTOR_STORE_PATH: Path = BASE_DIR / "faiss_index"
     DB_PATH: Path = BASE_DIR / "chat_history.db"
+    SHARD_DIR: Path = BASE_DIR / "faiss_shards"
 
     # API Keys
     GOOGLE_API_KEY: str = Field(
@@ -132,3 +133,4 @@ RATE_LIMIT_CHAT = settings.RATE_LIMIT_CHAT
 PDF_MAGIC_BYTES = settings.PDF_MAGIC_BYTES
 REQUIRE_AUTH = settings.REQUIRE_AUTH
 API_KEYS = settings.API_KEYS
+SHARD_DIR = settings.SHARD_DIR

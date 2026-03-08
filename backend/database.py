@@ -18,7 +18,68 @@ async def init_db():
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS documents (
+                doc_id TEXT PRIMARY KEY,
+                filename TEXT NOT NULL,
+                chunk_count INTEGER NOT NULL,
+                shard_path TEXT NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
         await db.commit()
+
+
+async def insert_document(doc_id: str, filename: str, chunk_count: int, shard_path: str) -> None:
+    """Insert a new document record into the documents table"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "INSERT INTO documents (doc_id, filename, chunk_count, shard_path) VALUES (?, ?, ?, ?)",
+            (doc_id, filename, chunk_count, shard_path)
+        )
+        await db.commit()
+
+
+async def get_all_documents() -> list[dict]:
+    """Retrieve all document records ordered by creation time (oldest first)"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT doc_id, filename, chunk_count, created_at FROM documents ORDER BY created_at ASC"
+        ) as cursor:
+            rows = await cursor.fetchall()
+            return [dict(row) for row in rows]
+
+
+async def get_document(doc_id: str) -> dict | None:
+    """Retrieve a single document record by doc_id, or None if not found"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute(
+            "SELECT * FROM documents WHERE doc_id = ?",
+            (doc_id,)
+        ) as cursor:
+            row = await cursor.fetchone()
+            return dict(row) if row is not None else None
+
+
+async def delete_document_record(doc_id: str) -> None:
+    """Delete a document record from the documents table"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            "DELETE FROM documents WHERE doc_id = ?",
+            (doc_id,)
+        )
+        await db.commit()
+
+
+async def get_all_doc_ids() -> list[str]:
+    """Retrieve all doc_ids from the documents table (for index rebuild after delete)"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        db.row_factory = aiosqlite.Row
+        async with db.execute("SELECT doc_id FROM documents") as cursor:
+            rows = await cursor.fetchall()
+            return [row["doc_id"] for row in rows]
 
 
 async def add_message(role: str, content: str):
