@@ -3,16 +3,18 @@ RAG Chatbot API - Main Application
 FastAPI server for document Q&A using Retrieval Augmented Generation
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import os
 import shutil
 
-from config import ALLOWED_ORIGINS, DB_PATH, VECTOR_STORE_PATH
+from config import ALLOWED_ORIGINS, DB_PATH, VECTOR_STORE_PATH, GOOGLE_API_KEY
 from state import app_state
 from database import init_db
-from middleware import RateLimitMiddleware, RequestIDMiddleware, RequestSizeLimitMiddleware, APIKeyMiddleware
+import aiosqlite
+from middleware import RateLimitMiddleware, RequestIDMiddleware, RequestSizeLimitMiddleware, APIKeyMiddleware, CSPHeaderMiddleware
+from vector_store import vector_store
 from logging_config import get_logger
 
 # Import Routers
@@ -63,15 +65,47 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
+app.add_middleware(CSPHeaderMiddleware)
+
 # Health Check (Keep in main)
 @app.get("/health")
-async def health_check():
-    """Health check endpoint"""
-    return {"status": "healthy", "version": "2.3.0"}
+async def health_check(response: Response):
+    """Health check with real dependency probes."""
+    checks: dict[str, str] = {}
+
+    # 1. FAISS: in-memory loaded state
+    checks["faiss"] = "ok" if vector_store.is_loaded() else "degraded"
+
+    # 2. SQLite: write test
+    try:
+        async with aiosqlite.connect(str(DB_PATH)) as db:
+            await db.execute("SELECT 1")
+        checks["sqlite"] = "ok"
+    except Exception:
+        checks["sqlite"] = "degraded"
+
+    # 3. Gemini API: reachability via REST
+    try:
+        import httpx
+        async with httpx.AsyncClient() as client:
+            r = await client.get(
+                "https://generativelanguage.googleapis.com/v1beta/models",
+                params={"key": GOOGLE_API_KEY},
+                timeout=5.0,
+            )
+            checks["gemini"] = "ok" if r.status_code == 200 else "degraded"
+    except Exception:
+        checks["gemini"] = "degraded"
+
+    overall = "ok" if all(v == "ok" for v in checks.values()) else "degraded"
+    if overall == "degraded":
+        response.status_code = 503
+
+    return {"status": overall, "checks": checks}
 
 # Include Routers
 app.include_router(upload.router)
