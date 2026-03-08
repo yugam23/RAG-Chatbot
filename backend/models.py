@@ -69,6 +69,19 @@ class UploadResponse(BaseModel):
     chunks: int
 
 
+class DocumentResponse(BaseModel):
+    """Response model for document registry entries"""
+    doc_id: str
+    filename: str
+    chunk_count: int
+    created_at: str  # ISO datetime string from SQLite
+
+
+class DocumentListResponse(BaseModel):
+    """Response from GET /documents"""
+    documents: List[DocumentResponse]
+
+
 class StatusResponse(BaseModel):
     """Response from status endpoint"""
     filename: Optional[str] = None
@@ -100,6 +113,8 @@ class StreamEvent(BaseModel):
 
 class SourceInfo(BaseModel):
     """Source document information"""
+    doc_id: str
+    filename: str
     page: int
     preview: str
 
