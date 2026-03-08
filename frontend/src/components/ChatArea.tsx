@@ -1,12 +1,13 @@
 import { FileText, Loader2, Bot } from 'lucide-react';
 import { ChatMessage } from './ChatMessage';
+import { ChatAreaSkeleton } from './Skeleton';
 import { useChatContext } from '../context/ChatContext';
 
 /**
  * ChatArea - Main chat display area with message list and empty states
  */
 export function ChatArea(): JSX.Element {
-  const { messages, messagesEndRef, uploadedFileName, isLoading } = useChatContext();
+  const { messages, messagesEndRef, uploadedFileName, isLoading, isHistoryLoading } = useChatContext();
   // Filter out empty assistant messages (we'll show "Thinking..." instead)
   const visibleMessages = messages.filter((msg, idx) => {
     // Show all non-empty messages
@@ -29,8 +30,13 @@ export function ChatArea(): JSX.Element {
       aria-label="Chat history"
       aria-live="polite"
     >
+      {/* Skeleton Loading State */}
+      {isHistoryLoading && messages.length === 0 && (
+        <ChatAreaSkeleton />
+      )}
+
       {/* Empty State */}
-      {messages.length === 0 && !isLoading && (
+      {messages.length === 0 && !isLoading && !isHistoryLoading && (
         <div className="h-full flex flex-col items-center justify-center text-center space-y-4 opacity-50">
           <div className="p-4 rounded-full bg-white/5 border border-white/5">
             <FileText className="w-12 h-12 text-gray-400" />

@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import { Header, ChatArea, ChatInput, SplashScreen } from './components';
 import ErrorBoundary from './components/ErrorBoundary';
-import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useKeyboardShortcuts, getShortcutKey } from './hooks/useKeyboardShortcuts';
 import { useChatContext } from './context/ChatContext';
 
 /**
@@ -17,6 +17,8 @@ const App = (): JSX.Element => {
 
   // Get chat context for keyboard shortcuts
   const { handleNewChat, abortRequest } = useChatContext();
+
+  const modifier = getShortcutKey();
 
   // Register keyboard shortcuts
   useKeyboardShortcuts({
@@ -64,9 +66,9 @@ const App = (): JSX.Element => {
 
             {/* Keyboard Shortcuts Hint - Hidden on mobile */}
             <div className="keyboard-hint mt-3 opacity-60 hidden md:flex">
-              <kbd>Ctrl</kbd>+<kbd>K</kbd> Focus
+              <kbd>{modifier}</kbd>+<kbd>K</kbd> Focus
               <span className="mx-2">•</span>
-              <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> New Chat
+              <kbd>{modifier}</kbd>+<kbd>Shift</kbd>+<kbd>N</kbd> New Chat
               <span className="mx-2">•</span>
               <kbd>Esc</kbd> Stop
             </div>
