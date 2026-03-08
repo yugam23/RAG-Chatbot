@@ -27,6 +27,7 @@ export interface UseChatReturn {
   uploadStatus: string;
   uploadedFileName: string | null;
   connectionStatus: 'online' | 'offline' | 'checking';
+  isHistoryLoading: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
   sendMessage: (input: string) => Promise<void>;
@@ -270,9 +271,10 @@ export function useChat(): UseChatReturn {
         return;
       }
       console.error('Chat error:', err);
+      const message = (err as Error).message || 'Failed to get response. Please try again.';
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: '**Error:** Failed to get response. Please try again.' },
+        { role: 'assistant', content: `**Error:** ${message}` },
       ]);
     } finally {
       setIsLoading(false);
@@ -293,6 +295,8 @@ export function useChat(): UseChatReturn {
     uploadedFileName,
     /** Connection health status: 'online' | 'offline' | 'checking' */
     connectionStatus,
+    /** Whether the chat history is currently loading from the server */
+    isHistoryLoading: historyQuery.isLoading,
 
     // Refs
     fileInputRef,

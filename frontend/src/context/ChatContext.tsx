@@ -5,7 +5,7 @@ import type { UseChatReturn } from '../hooks/useChat';
 
 type ChatState = UseChatReturn;
 
-const ChatContext = createContext<ChatState | null>(null);
+const ChatContext = createContext<ChatState | undefined>(undefined);
 
 interface ChatProviderProps {
   children: ReactNode;
@@ -18,7 +18,7 @@ export const ChatProvider = ({ children }: ChatProviderProps) => {
 
 export const useChatContext = (): ChatState => {
   const context = useContext(ChatContext);
-  if (context === null) {
+  if (context === undefined) {
     throw new Error('useChatContext must be used within a ChatProvider');
   }
   return context;
