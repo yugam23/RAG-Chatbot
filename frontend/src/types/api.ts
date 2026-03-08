@@ -23,8 +23,12 @@ export interface ResetResponse {
 }
 
 export interface HealthResponse {
-  status: string;
-  version: string;
+  status: 'ok' | 'degraded';
+  checks: {
+    faiss: 'ok' | 'degraded';
+    sqlite: 'ok' | 'degraded';
+    gemini: 'ok' | 'degraded';
+  };
 }
 
 /**

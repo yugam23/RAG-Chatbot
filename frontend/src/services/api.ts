@@ -97,6 +97,9 @@ export async function uploadDocument(file: File): Promise<UploadResponse> {
   );
 
   if (!res.ok) {
+    if (res.status === 429) {
+      throw new Error('Too many requests \u2014 please wait a moment');
+    }
     const errorText = await res.text();
     throw new Error(errorText || 'Upload failed');
   }
@@ -117,6 +120,9 @@ export async function sendChatMessage(question: string): Promise<Response> {
   });
 
   if (!res.ok) {
+    if (res.status === 429) {
+      throw new Error('Too many requests \u2014 please wait a moment');
+    }
     const errorText = await res.text();
     throw new Error(errorText || 'Chat request failed');
   }
