@@ -132,16 +132,16 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
     Only active when REQUIRE_AUTH=true in config.
     """
     EXEMPT_PATHS = {"/health", "/docs", "/openapi.json", "/redoc"}
-    
+
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Skip if auth is disabled
         if not settings.REQUIRE_AUTH:
             return await call_next(request)
-        
+
         # Skip exempt paths
         if request.url.path in self.EXEMPT_PATHS:
             return await call_next(request)
-        
+
         # Check for API key
         api_key = request.headers.get("X-API-Key")
         if not api_key or api_key not in settings.API_KEYS:
@@ -153,3 +153,21 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
                 }
             )
         return await call_next(request)
+
+
+class CSPHeaderMiddleware(BaseHTTPMiddleware):
+    """Adds Content-Security-Policy header to all responses."""
+
+    CSP_POLICY = (
+        "default-src 'self'; "
+        "connect-src 'self' https://sentry.io https://*.sentry.io; "
+        "style-src 'self' 'unsafe-inline'; "
+        "script-src 'self'; "
+        "img-src 'self' data:; "
+        "font-src 'self'"
+    )
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        response = await call_next(request)
+        response.headers["Content-Security-Policy"] = self.CSP_POLICY
+        return response

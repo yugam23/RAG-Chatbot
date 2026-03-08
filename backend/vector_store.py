@@ -90,7 +90,11 @@ class FAISSVectorStore(VectorStoreInterface):
         if self.store_path.exists():
             shutil.rmtree(self.store_path)
             logger.info("vector_store_cleared")
-    
+
+    def is_loaded(self) -> bool:
+        """Check if FAISS index is loaded in memory (documents indexed)."""
+        return self._vectorstore is not None
+
     def _load(self) -> None:
         """Load FAISS index from disk if it exists"""
         if self.store_path.exists():

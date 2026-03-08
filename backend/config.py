@@ -6,7 +6,7 @@ Single source of truth for all config values.
 
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, computed_field
+from pydantic import Field, computed_field, model_validator
 from typing import List
 
 
@@ -80,6 +80,15 @@ class Settings(BaseSettings):
     @computed_field
     def MAX_REQUEST_BODY_BYTES(self) -> int:
         return self.MAX_REQUEST_BODY_MB * 1024 * 1024
+
+    @model_validator(mode="after")
+    def validate_auth_config(self) -> "Settings":
+        if self.REQUIRE_AUTH and not self.API_KEYS:
+            raise ValueError(
+                "REQUIRE_AUTH=True but API_KEYS is empty. "
+                "Set API_KEYS or disable REQUIRE_AUTH."
+            )
+        return self
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
