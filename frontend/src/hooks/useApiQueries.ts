@@ -42,11 +42,15 @@ export function useHealthQuery() {
         method: 'GET',
         signal: AbortSignal.timeout(5000),
       });
-      if (!response.ok) throw new Error('Backend offline');
-      return response.json() as Promise<HealthResponse>;
+      // Parse body on 200 (ok) and 503 (degraded) — both are valid health responses
+      if (response.ok || response.status === 503) {
+        return response.json() as Promise<HealthResponse>;
+      }
+      // Any other status is unexpected — treat as offline
+      throw new Error('Backend offline');
     },
-    staleTime: 1000 * 30, // 30 seconds
-    refetchInterval: 30000, // Poll every 30s
+    staleTime: 1000 * 30,
+    refetchInterval: 30000,
   });
 }
 
