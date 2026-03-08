@@ -4,32 +4,36 @@ import json
 import os
 import shutil
 
-from config import DB_PATH, VECTOR_STORE_PATH
-from state import app_state
+from config import DB_PATH, VECTOR_STORE_PATH, SHARD_DIR
 from models import ChatRequest, StatusResponse, ResetResponse
-from database import init_db, add_message, get_history, get_history_paginated, clear_messages
+from database import init_db, add_message, get_history, get_history_paginated, clear_messages, get_all_documents
 from rag import generate_chat_response
+from vector_store import vector_store
 
 router = APIRouter()
 
 @router.post("/reset", response_model=ResetResponse)
 async def reset_session():
     """Reset the entire session (document + chat)"""
-    
+
     # Delete FAISS Index
     if VECTOR_STORE_PATH.exists():
         shutil.rmtree(VECTOR_STORE_PATH)
-    
+
+    # Delete FAISS shards
+    if SHARD_DIR.exists():
+        shutil.rmtree(SHARD_DIR)
+
     # Delete Chat History DB
     if DB_PATH.exists():
         os.remove(DB_PATH)
-        
-    # Re-initialize DB
+
+    # Re-initialize DB (recreates messages and documents tables empty)
     await init_db()
-    
-    # Reset application state
-    await app_state.clear()
-    
+
+    # Clear in-memory vector store state
+    vector_store._vectorstore = None
+
     return ResetResponse(status="Session Reset")
 
 
@@ -43,7 +47,8 @@ async def clear_chat_history():
 @router.get("/status", response_model=StatusResponse)
 async def get_status():
     """Get current document status"""
-    filename = await app_state.get_document()
+    docs = await get_all_documents()
+    filename = docs[-1]["filename"] if docs else None
     return StatusResponse(filename=filename)
 
 
@@ -51,11 +56,11 @@ async def get_status():
 async def get_chat_history(limit: int = 50, offset: int = 0):
     """
     Get paginated chat messages.
-    
+
     Query Parameters:
         limit: Maximum number of messages to return (default 50, max 100)
         offset: Number of messages to skip for pagination
-    
+
     Returns:
         If limit and offset are default (50, 0), returns list of all messages.
         Otherwise returns pagination object with messages, total, limit, offset, has_more.
@@ -63,11 +68,11 @@ async def get_chat_history(limit: int = 50, offset: int = 0):
     # Cap limit at 100
     if limit > 100:
         limit = 100
-    
+
     # If using default values, return simple list for backward compatibility
     if limit == 50 and offset == 0:
         return await get_history()
-    
+
     # Otherwise return paginated response
     return await get_history_paginated(limit, offset)
 
@@ -75,10 +80,10 @@ async def get_chat_history(limit: int = 50, offset: int = 0):
 @router.post("/chat")
 async def chat(request: ChatRequest):
     """Stream chat response for a question"""
-    
+
     # Save User Question
     await add_message("user", request.question)
-    
+
     async def event_generator():
         full_answer = ""
         async for event in generate_chat_response(request.question):
@@ -90,7 +95,7 @@ async def chat(request: ChatRequest):
             except (json.JSONDecodeError, KeyError):
                 pass
             yield event
-            
+
         # Save Assistant Answer
         if full_answer:
             await add_message("assistant", full_answer)

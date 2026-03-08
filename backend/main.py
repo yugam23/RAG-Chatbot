@@ -9,8 +9,7 @@ from contextlib import asynccontextmanager
 import os
 import shutil
 
-from config import ALLOWED_ORIGINS, DB_PATH, VECTOR_STORE_PATH, GOOGLE_API_KEY
-from state import app_state
+from config import ALLOWED_ORIGINS, DB_PATH, VECTOR_STORE_PATH, SHARD_DIR, GOOGLE_API_KEY
 from database import init_db
 import aiosqlite
 from middleware import RateLimitMiddleware, RequestIDMiddleware, RequestSizeLimitMiddleware, APIKeyMiddleware, CSPHeaderMiddleware
@@ -18,7 +17,7 @@ from vector_store import vector_store
 from logging_config import get_logger
 
 # Import Routers
-from routers import chat, upload
+from routers import chat, upload, documents
 
 logger = get_logger(__name__)
 
@@ -31,22 +30,23 @@ async def lifespan(app: FastAPI):
     # This aligns with the "stateless" nature of this specific chatbot demo,
     # preventing old data from bleeding into new user sessions.
     logger.info("startup_cleanup_started", message="Cleaning up old session data")
-    
+
     if DB_PATH.exists():
         os.remove(DB_PATH)
         logger.debug("deleted_file", file="chat_history.db")
-        
+
     if VECTOR_STORE_PATH.exists():
         shutil.rmtree(VECTOR_STORE_PATH)
         logger.debug("deleted_directory", directory="faiss_index")
 
-    # Reset application state
-    await app_state.clear()
-    
+    if SHARD_DIR.exists():
+        shutil.rmtree(SHARD_DIR)
+        logger.debug("deleted_directory", directory="faiss_shards")
+
     # Initialize fresh DB
     await init_db()
     logger.info("startup_complete", message="New session initialized")
-    
+
     yield
     # Shutdown logic
     logger.info("shutdown", message="Application shutting down")
@@ -110,6 +110,7 @@ async def health_check(response: Response):
 # Include Routers
 app.include_router(upload.router)
 app.include_router(chat.router)
+app.include_router(documents.router)
 
 
 if __name__ == "__main__":

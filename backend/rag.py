@@ -66,6 +66,8 @@ async def generate_chat_response(question: str):
         # Prepare source metadata
         sources = [
             {
+                "doc_id": doc.metadata.get("doc_id", ""),
+                "filename": doc.metadata.get("filename", "unknown"),
                 "page": doc.metadata.get("page", 0) + 1,
                 "preview": doc.page_content[:50].replace("\n", " ") + "..."
             }
