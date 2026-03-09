@@ -1,7 +1,3 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import type React from 'react';
-import * as api from '../services/api';
-import type { Message, StreamEvent } from '../types/api';
 import {
   useHistoryQuery,
   useStatusQuery,
@@ -10,15 +6,11 @@ import {
   useResetMutation,
   useClearChatMutation,
 } from './useApiQueries';
-
-// LocalStorage keys (Tier 4 - Optimized Strategy)
-const STORAGE_KEYS = {
-  RECENT: 'rag_chatbot_recent', // Only last 20 messages
-  FILENAME: 'rag_chatbot_filename',
-};
-
-// Maximum messages to cache locally (Tier 4)
-const MAX_LOCAL_MESSAGES = 20;
+import { useChatMessages } from './useChatMessages';
+import { useSseStream } from './useSseStream';
+import { useDocumentState } from './useDocumentState';
+import type React from 'react';
+import type { Message } from '../types/api';
 
 export interface UseChatReturn {
   messages: Message[];
@@ -38,32 +30,11 @@ export interface UseChatReturn {
 }
 
 /**
- * Custom hook for chat functionality
- * Manages messages, document state, and API interactions
- * Refactored to use React Query for data fetching
+ * Custom hook for chat functionality.
+ * Thin orchestrator composing useChatMessages, useSseStream, and useDocumentState.
+ * The public UseChatReturn interface is unchanged — zero consumer changes required.
  */
 export function useChat(): UseChatReturn {
-  // Initialize state - will be synced from server
-  const [messages, setMessages] = useState<Message[]>(() => {
-    // Try to load recent messages as fallback
-    try {
-      const recent = localStorage.getItem(STORAGE_KEYS.RECENT);
-      return recent ? (JSON.parse(recent) as Message[]) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [uploadStatus, setUploadStatus] = useState('');
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_KEYS.FILENAME) || null;
-  });
-
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-
   // React Query hooks
   const historyQuery = useHistoryQuery();
   const statusQuery = useStatusQuery();
@@ -72,215 +43,32 @@ export function useChat(): UseChatReturn {
   const resetMutation = useResetMutation();
   const clearChatMutation = useClearChatMutation();
 
-  // Derive connection status from health query
-  const connectionStatus: 'online' | 'offline' | 'checking' = healthQuery.isLoading
-    ? 'checking'
-    : healthQuery.isError
-      ? 'offline'
-      : 'online';
+  // Message state + localStorage sync + server history + auto-scroll
+  const { messages, setMessages, clearMessages, messagesEndRef, isHistoryLoading } =
+    useChatMessages(historyQuery);
 
-  // Derive isUploading from mutation state
-  const isUploading = uploadMutation.isPending;
+  // SSE streaming + AbortController
+  const { isLoading, sendMessage, abortRequest, abortControllerRef } = useSseStream(setMessages);
 
-  // Sync server history with local state on successful fetch (Tier 4)
-  useEffect(() => {
-    if (historyQuery.data && historyQuery.data.length > 0) {
-      setMessages(historyQuery.data);
-    } else if (historyQuery.isSuccess && historyQuery.data && historyQuery.data.length === 0) {
-      // Server has no messages, clear local state
-      setMessages([]);
-    }
-  }, [historyQuery.data, historyQuery.isSuccess]);
-
-  // Sync server status with local state
-  useEffect(() => {
-    if (statusQuery.isSuccess) {
-      setUploadedFileName(statusQuery.data.filename || null);
-    }
-  }, [statusQuery.data, statusQuery.isSuccess]);
-
-  // Cache only recent messages to localStorage (Tier 4 optimization)
-  useEffect(() => {
-    try {
-      const recentMessages = messages.slice(-MAX_LOCAL_MESSAGES);
-      localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(recentMessages));
-    } catch (e) {
-      console.warn('Failed to persist recent messages to localStorage:', e);
-    }
-  }, [messages]);
-
-  // Persist filename to localStorage
-  useEffect(() => {
-    try {
-      if (uploadedFileName) {
-        localStorage.setItem(STORAGE_KEYS.FILENAME, uploadedFileName);
-      } else {
-        localStorage.removeItem(STORAGE_KEYS.FILENAME);
-      }
-    } catch (e) {
-      console.warn('Failed to persist filename to localStorage:', e);
-    }
-  }, [uploadedFileName]);
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  // Handle file upload with mutation
-  const handleFileUpload = useCallback(
-    async (file: File): Promise<void> => {
-      if (!file) return;
-
-      setUploadStatus('Indexing Document...');
-
-      try {
-        await uploadMutation.mutateAsync(file);
-        setUploadStatus('Document Ready!');
-        setUploadedFileName(file.name);
-        setTimeout(() => setUploadStatus(''), 3000);
-      } catch (err) {
-        console.error('Upload error:', err);
-        setUploadStatus('Upload Failed');
-      }
-    },
-    [uploadMutation]
-  );
-
-  // Handle new chat (reset everything)
-  const handleNewChat = useCallback(async (): Promise<void> => {
-    try {
-      // Abort any ongoing request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-
-      await resetMutation.mutateAsync();
-      setMessages([]);
-      setUploadedFileName(null);
-
-      // Clear localStorage
-      localStorage.removeItem(STORAGE_KEYS.RECENT);
-      localStorage.removeItem(STORAGE_KEYS.FILENAME);
-
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err) {
-      console.error('Failed to reset chat:', err);
-    }
-  }, [resetMutation]);
-
-  // Handle clear chat (keep document)
-  const handleClearChat = useCallback(async (): Promise<void> => {
-    try {
-      // Abort any ongoing request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-
-      await clearChatMutation.mutateAsync();
-      setMessages([]);
-      localStorage.removeItem(STORAGE_KEYS.RECENT);
-    } catch (err) {
-      console.error('Failed to clear chat:', err);
-    }
-  }, [clearChatMutation]);
-
-  // Abort ongoing request
-  const abortRequest = useCallback((): void => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Send a message with abort support
-  const sendMessage = useCallback(async (input: string): Promise<void> => {
-    if (!input.trim()) return;
-
-    // Abort any previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new abort controller
-    abortControllerRef.current = new AbortController();
-
-    const userMsg: Message = { role: 'user', content: input };
-    setMessages((prev) => [...prev, userMsg]);
-    setIsLoading(true);
-
-    try {
-      const response = await api.sendChatMessage(input);
-      // API-03: Response.body is ReadableStream | null in DOM types
-      if (response.body === null) {
-        throw new Error('Response body is null — streaming not supported in this environment');
-      }
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      const assistantMsg: Message = { role: 'assistant', content: '' };
-
-      setMessages((prev) => [...prev, assistantMsg]);
-
-      while (true) {
-        // Check if aborted
-        if (abortControllerRef.current?.signal.aborted) {
-          void reader.cancel();
-          break;
-        }
-
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (!line) continue;
-          try {
-            const json = JSON.parse(line) as StreamEvent;
-            if (json.type === 'token') {
-              setMessages((prev) => {
-                const newMsgs = [...prev];
-                const lastMsg = newMsgs[newMsgs.length - 1];
-                newMsgs[newMsgs.length - 1] = {
-                  ...lastMsg,
-                  content: lastMsg.content + (json.data as string),
-                };
-                return newMsgs;
-              });
-            } else if (json.type === 'error') {
-              setMessages((prev) => {
-                const newMsgs = [...prev];
-                const lastMsg = newMsgs[newMsgs.length - 1];
-                newMsgs[newMsgs.length - 1] = {
-                  ...lastMsg,
-                  content: lastMsg.content + `\n\n**Error:** ${json.data as string}`,
-                };
-                return newMsgs;
-              });
-            }
-          } catch {
-            // Skip malformed JSON chunks
-          }
-        }
-      }
-    } catch (err) {
-      if ((err as Error).name === 'AbortError') {
-        // Request was aborted, no need to log
-        return;
-      }
-      console.error('Chat error:', err);
-      const message = (err as Error).message || 'Failed to get response. Please try again.';
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: `**Error:** ${message}` },
-      ]);
-    } finally {
-      setIsLoading(false);
-      abortControllerRef.current = null;
-    }
-  }, []);
+  // Upload state + file actions + connection status
+  const {
+    isUploading,
+    uploadStatus,
+    uploadedFileName,
+    connectionStatus,
+    fileInputRef,
+    handleFileUpload,
+    handleNewChat,
+    handleClearChat,
+  } = useDocumentState({
+    statusQuery,
+    healthQuery,
+    uploadMutation,
+    resetMutation,
+    clearChatMutation,
+    abortControllerRef,
+    clearMessages,
+  });
 
   return {
     /** Array of chat messages */
@@ -296,7 +84,7 @@ export function useChat(): UseChatReturn {
     /** Connection health status: 'online' | 'offline' | 'checking' */
     connectionStatus,
     /** Whether the chat history is currently loading from the server */
-    isHistoryLoading: historyQuery.isLoading,
+    isHistoryLoading,
 
     // Refs
     fileInputRef,
