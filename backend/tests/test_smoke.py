@@ -21,6 +21,7 @@ async def test_app_imports_without_validation_error():
     This confirms that GOOGLE_API_KEY is set before pydantic-settings
     collection by the root-level conftest.py.
     """
+    pytest.importorskip("langchain_core")
     from main import app
     assert app is not None
     assert app.title  # FastAPI app has a title
