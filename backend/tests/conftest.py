@@ -3,29 +3,15 @@ Pytest Configuration and Fixtures
 Shared fixtures for all test modules
 """
 
-import asyncio
-import os
 import sys
 from pathlib import Path
-from typing import AsyncGenerator, Generator
+from typing import AsyncGenerator
 
 import pytest
 from httpx import AsyncClient, ASGITransport
 
 # Ensure backend is in path
 sys.path.insert(0, str(Path(__file__).parent.parent))
-
-# Set test environment
-os.environ["ENVIRONMENT"] = "test"
-os.environ["GOOGLE_API_KEY"] = "test_key_for_testing"
-
-
-@pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    """Create an event loop for the test session."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
 
 
 @pytest.fixture
@@ -58,10 +44,10 @@ def sample_pdf_content() -> bytes:
 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>endobj
 xref
 0 4
-0000000000 65535 f 
-0000000009 00000 n 
-0000000052 00000 n 
-0000000101 00000 n 
+0000000000 65535 f
+0000000009 00000 n
+0000000052 00000 n
+0000000101 00000 n
 trailer<</Size 4/Root 1 0 R>>
 startxref
 178
