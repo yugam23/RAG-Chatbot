@@ -7,7 +7,7 @@ import { useChatContext } from '../context/ChatContext';
  * ChatArea - Main chat display area with message list and empty states
  */
 export function ChatArea(): JSX.Element {
-  const { messages, messagesEndRef, uploadedFileName, isLoading, isHistoryLoading } = useChatContext();
+  const { messages, messagesEndRef, documents, isLoading, isHistoryLoading } = useChatContext();
   // Filter out empty assistant messages (we'll show "Thinking..." instead)
   const visibleMessages = messages.filter((msg, idx) => {
     // Show all non-empty messages
@@ -43,10 +43,10 @@ export function ChatArea(): JSX.Element {
           </div>
           <div>
             <h3 className="text-lg font-medium text-gray-200">
-              {uploadedFileName ? 'Document Ready!' : 'No documents indexed'}
+              {documents.length > 0 ? 'Document Ready!' : 'No documents indexed'}
             </h3>
             <p className="text-sm text-gray-500 mt-1">
-              {uploadedFileName
+              {documents.length > 0
                 ? 'Start asking questions about your document'
                 : 'Upload a PDF to start analyzing content'}
             </p>
