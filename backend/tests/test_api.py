@@ -11,22 +11,22 @@ class TestHealthEndpoint:
     """Tests for the /health endpoint."""
     
     async def test_health_returns_200(self, client: AsyncClient):
-        """Health endpoint should return 200 OK."""
+        """Health endpoint should return 200 OK or 503 degraded."""
         response = await client.get("/health")
-        assert response.status_code == 200
+        assert response.status_code in [200, 503]
     
     async def test_health_returns_status_healthy(self, client: AsyncClient):
-        """Health endpoint should return healthy status."""
+        """Health endpoint should return ok or degraded status."""
         response = await client.get("/health")
         data = response.json()
-        assert data["status"] == "healthy"
+        assert data["status"] in ["ok", "degraded"]
     
-    async def test_health_includes_version(self, client: AsyncClient):
-        """Health endpoint should include version number."""
+    async def test_health_includes_checks(self, client: AsyncClient):
+        """Health endpoint should include checks object."""
         response = await client.get("/health")
         data = response.json()
-        assert "version" in data
-        assert data["version"].startswith("2.")
+        assert "checks" in data
+        assert isinstance(data["checks"], dict)
 
 
 class TestStatusEndpoint:

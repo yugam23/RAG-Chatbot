@@ -14,7 +14,7 @@ class TestRateLimitMiddleware:
         """Requests within rate limit should succeed."""
         # Make a few requests (well within limit)
         for _ in range(3):
-            response = await client.get("/health")
+            response = await client.get("/status")
             assert response.status_code == 200
     
     async def test_rate_limit_applies_to_chat_endpoint(self, client: AsyncClient):
@@ -60,7 +60,7 @@ class TestAPIKeyMiddleware:
     
     async def test_auth_disabled_allows_requests(self, client: AsyncClient):
         """When auth is disabled (default), requests should succeed without API key."""
-        response = await client.get("/health")
+        response = await client.get("/status")
         assert response.status_code == 200
     
     async def test_status_accessible_without_auth(self, client: AsyncClient):
@@ -72,3 +72,28 @@ class TestAPIKeyMiddleware:
         """API key header is ignored when auth is disabled."""
         response = await client.get("/status", headers={"X-API-Key": "any-key"})
         assert response.status_code == 200
+
+    async def test_missing_api_key_returns_401_when_auth_enabled(self, client: AsyncClient, monkeypatch):
+        """When REQUIRE_AUTH=True, missing API key returns 401."""
+        import middleware
+        monkeypatch.setattr(middleware.settings, "REQUIRE_AUTH", True)
+        monkeypatch.setattr(middleware.settings, "API_KEYS_STR", "valid-key-123")
+        response = await client.get("/status")
+        assert response.status_code == 401
+        assert response.json()["code"] == "UNAUTHORIZED"
+
+    async def test_valid_api_key_succeeds_when_auth_enabled(self, client: AsyncClient, monkeypatch):
+        """When REQUIRE_AUTH=True, valid API key passes."""
+        import middleware
+        monkeypatch.setattr(middleware.settings, "REQUIRE_AUTH", True)
+        monkeypatch.setattr(middleware.settings, "API_KEYS_STR", "valid-key-123")
+        response = await client.get("/status", headers={"X-API-Key": "valid-key-123"})
+        assert response.status_code == 200
+
+    async def test_health_exempt_from_auth(self, client: AsyncClient, monkeypatch):
+        """Health endpoint is exempt from API key auth."""
+        import middleware
+        monkeypatch.setattr(middleware.settings, "REQUIRE_AUTH", True)
+        monkeypatch.setattr(middleware.settings, "API_KEYS_STR", "valid-key-123")
+        response = await client.get("/health")
+        assert response.status_code in [200, 503]  # Exempt from auth, may return 503 if degraded
