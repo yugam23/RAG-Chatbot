@@ -3,7 +3,7 @@
  * All backend communication goes through this module
  */
 
-import type { Message, StatusResponse, UploadResponse, ResetResponse } from '../types/api';
+import type { Message, StatusResponse, UploadResponse, ResetResponse, Document } from '../types/api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -55,6 +55,27 @@ export async function fetchStatus(): Promise<StatusResponse> {
   const res = await fetchWithTimeout(`${API_URL}/status`);
   if (!res.ok) throw new Error('Failed to fetch status');
   return res.json() as Promise<StatusResponse>;
+}
+
+/**
+ * Fetch list of uploaded documents
+ * @returns Array of Document objects
+ */
+export async function fetchDocuments(): Promise<Document[]> {
+  const res = await fetchWithTimeout(`${API_URL}/documents`);
+  if (!res.ok) throw new Error('Failed to fetch documents');
+  return res.json() as Promise<Document[]>;
+}
+
+/**
+ * Delete a specific document by ID
+ * @param docId - Document ID to delete
+ * @returns Deletion confirmation
+ */
+export async function deleteDocument(docId: string): Promise<{ status: string; doc_id: string }> {
+  const res = await fetchWithTimeout(`${API_URL}/documents/${docId}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete document');
+  return res.json() as Promise<{ status: string; doc_id: string }>;
 }
 
 /**
