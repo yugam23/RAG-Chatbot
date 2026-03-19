@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as api from '../services/api';
-import type { HealthResponse } from '../types/api';
+import type { HealthResponse, Document } from '../types/api';
 
 // Query Keys
 export const queryKeys = {
   history: ['chat', 'history'] as const,
   status: ['chat', 'status'] as const,
   health: ['chat', 'health'] as const,
+  documents: ['chat', 'documents'] as const,
 } as const;
 
 /**
@@ -51,6 +52,32 @@ export function useHealthQuery() {
     },
     staleTime: 1000 * 30,
     refetchInterval: 30000,
+  });
+}
+
+/**
+ * Hook to fetch list of uploaded documents
+ */
+export function useDocumentsQuery() {
+  return useQuery({
+    queryKey: queryKeys.documents,
+    queryFn: api.fetchDocuments,
+    staleTime: 1000 * 60,
+  });
+}
+
+/**
+ * Hook to delete a specific document
+ */
+export function useDeleteDocumentMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: api.deleteDocument,
+    onSuccess: () => {
+      // Invalidate documents query to refetch the updated list
+      void queryClient.invalidateQueries({ queryKey: queryKeys.documents });
+    },
   });
 }
 
