@@ -16,7 +16,7 @@ const App = (): JSX.Element => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Get chat context for keyboard shortcuts
-  const { handleNewChat, abortRequest } = useChatContext();
+  const { handleNewChat, handleResetSession, abortRequest } = useChatContext();
 
   const modifier = getShortcutKey();
 

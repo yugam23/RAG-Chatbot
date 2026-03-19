@@ -8,12 +8,12 @@ import { useChatContext } from '../context/ChatContext';
 export function ChatInput(): JSX.Element {
   const {
     sendMessage: onSend,
-    handleClearChat: onClearChat,
+    handleNewChat: onClearChat,
     abortRequest: onAbort,
     isLoading,
-    uploadedFileName,
+    documents,
   } = useChatContext();
-  const showClearChat = !!uploadedFileName;
+  const showClearChat = documents.length > 0;
   const [input, setInput] = useState('');
 
   const handleSubmit = (): void => {
