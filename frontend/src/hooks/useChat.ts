@@ -10,7 +10,7 @@ import {
 import { useChatMessages } from './useChatMessages';
 import { useSseStream } from './useSseStream';
 import { useDocumentState } from './useDocumentState';
-import type React from 'react';
+import React from 'react';
 import type { Message, Document } from '../types/api';
 
 export interface UseChatReturn {
