@@ -52,8 +52,13 @@ export function useChatMessages(
   // Cache only recent messages to localStorage (Tier 4 optimization)
   useEffect(() => {
     try {
-      const recentMessages = messages.slice(-MAX_LOCAL_MESSAGES);
-      localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(recentMessages));
+      if (messages.length > 0) {
+        const recentMessages = messages.slice(-MAX_LOCAL_MESSAGES);
+        localStorage.setItem(STORAGE_KEYS.RECENT, JSON.stringify(recentMessages));
+      } else {
+        // Only remove if messages was deliberately cleared (not initial empty state)
+        localStorage.removeItem(STORAGE_KEYS.RECENT);
+      }
     } catch (e) {
       console.warn('Failed to persist recent messages to localStorage:', e);
     }
@@ -66,7 +71,6 @@ export function useChatMessages(
 
   const clearMessages = () => {
     setMessages([]);
-    localStorage.removeItem(STORAGE_KEYS.RECENT);
   };
 
   return {
