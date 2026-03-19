@@ -1,0 +1,53 @@
+# RAG Chatbot Docker Compose
+# ============================
+# EPHEMERAL SESSION WARNING:
+# The backend FAISS index and SQLite database are DELETED on every container restart.
+# All uploaded documents are lost after restart. This is by design for v1.2's
+# stateless demo model.
+#
+# OPTIONAL PERSISTENCE: Uncomment the faiss_data volume mount in the backend service
+# to persist the FAISS index across restarts. You MUST mount the volume BEFORE the
+# first container restart to preserve data — the first startup after "docker compose down -v"
+# or a fresh "docker compose up" always wipes (this is the ephemeral session design).
+
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    env_file:
+      - .env
+    environment:
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173}
+      REQUIRE_AUTH: ${REQUIRE_AUTH:-false}
+      API_KEYS: ${API_KEYS:-}
+      SENTRY_DSN_BACKEND: ${SENTRY_DSN_BACKEND:-}
+    ports:
+      - "8000:8000"
+    volumes:
+      # Optional: persist FAISS index across restarts
+      # WARNING: The backend deletes index on every startup. To preserve data,
+      # mount this volume BEFORE the first container restart. First startup
+      # after a fresh container always wipes (by design for ephemeral sessions).
+      # - faiss_data:/code/faiss_index
+
+  frontend:
+    build: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "5173:80"
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+
+volumes:
+  faiss_data:
+    driver: local
