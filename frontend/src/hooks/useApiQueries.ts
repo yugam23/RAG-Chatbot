@@ -90,8 +90,9 @@ export function useUploadMutation() {
   return useMutation({
     mutationFn: api.uploadDocument,
     onSuccess: () => {
-      // Invalidate status query to refetch
+      // Invalidate both status and documents queries — documents query returns the full list
       void queryClient.invalidateQueries({ queryKey: queryKeys.status });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.documents });
     },
   });
 }
