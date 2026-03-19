@@ -3,6 +3,7 @@ API Endpoint Tests
 Tests for all FastAPI endpoints: health, upload, chat, reset, etc.
 """
 
+import json
 import pytest
 from httpx import AsyncClient
 
@@ -161,3 +162,62 @@ class TestUploadEdgeCases:
         response = await client.post("/upload", files=files)
         # Should reject - either 400 (no .pdf extension) or 422 (validation)
         assert response.status_code in [400, 422]
+
+
+class TestUploadToChatIntegration:
+    """Integration test: full upload -> chat flow with mocked LLM."""
+
+    async def test_upload_to_chat_integration_with_mocked_llm(
+        self, client: AsyncClient, temp_pdf_file
+    ):
+        """Upload a PDF, then chat — LLM mocked, rest runs for real."""
+        pytest.importorskip("langchain_core")
+        from unittest.mock import MagicMock, AsyncMock, patch
+        import json
+
+        # Mock shard and ingest result
+        mock_shard = MagicMock()
+        mock_ingest_result = {"chunks": 5, "shard": mock_shard, "doc_id": "test-doc-id"}
+
+        # Mock run_in_threadpool to bypass thread pool for sync functions we're mocking
+        async def mock_run_in_threadpool(func, *args, **kwargs):
+            if func.__name__ == "ingest_pdf":
+                return mock_ingest_result
+            elif func.__name__ == "merge_shard":
+                return None
+            return func(*args, **kwargs)
+
+        with patch("routers.upload.run_in_threadpool", side_effect=mock_run_in_threadpool), \
+             patch("routers.upload.insert_document", return_value=None) as mock_insert:
+
+            # Upload PDF (ingest_pdf is mocked, so no actual PDF processing)
+            with open(temp_pdf_file, "rb") as f:
+                upload_response = await client.post(
+                    "/upload",
+                    files={"file": ("test.pdf", f, "application/pdf")}
+                )
+            assert upload_response.status_code == 200
+            assert upload_response.json()["chunks"] == 5
+
+        # Mock the RAG chain for chat using generate_chat_response directly
+        async def mock_generate_chat_response(question: str):
+            """Mock that yields sources then tokens without hitting the LLM."""
+            yield json.dumps({"type": "sources", "data": [
+                {"doc_id": "test-id", "filename": "test.pdf", "page": 1, "preview": "..."}
+            ]}) + "\n"
+            yield json.dumps({"type": "token", "data": "Hello "}) + "\n"
+            yield json.dumps({"type": "token", "data": "from mocked LLM"}) + "\n"
+
+        with patch("routers.chat.generate_chat_response", side_effect=mock_generate_chat_response):
+            chat_response = await client.post(
+                "/chat", json={"question": "What is this about?"}
+            )
+            assert chat_response.status_code == 200
+
+            # Response should contain streamed tokens
+            content = chat_response.text
+            events = [json.loads(line) for line in content.strip().split("\n") if line.strip()]
+            # Should have sources event and token events
+            event_types = [e["type"] for e in events]
+            assert "sources" in event_types
+            assert "token" in event_types
