@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type React from 'react';
 import { STORAGE_KEYS } from './useChatMessages';
+import type { Document } from '../types/api';
 import type { useStatusQuery, useHealthQuery, useUploadMutation, useResetMutation, useClearChatMutation } from './useApiQueries';
 
 export interface UseDocumentStateParams {
@@ -16,21 +17,25 @@ export interface UseDocumentStateParams {
 export interface UseDocumentStateReturn {
   isUploading: boolean;
   uploadStatus: string;
-  uploadedFileName: string | null;
+  documents: Document[];
   connectionStatus: 'online' | 'offline' | 'checking';
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   handleFileUpload: (file: File) => Promise<void>;
   handleNewChat: () => Promise<void>;
-  handleClearChat: () => Promise<void>;
+  handleResetSession: () => Promise<void>;
 }
 
 /**
  * Hook for upload state, file actions, and connection status.
- * Owns: uploadStatus, uploadedFileName, fileInputRef, connectionStatus derivation,
+ * Owns: uploadStatus, documents array, fileInputRef, connectionStatus derivation,
  * and all file/chat action callbacks.
+ *
+ * Documents array is local state initialized from localStorage — it is NOT synced
+ * from a query in this hook. React Query syncing happens in useChat.ts via
+ * queryClient.invalidateQueries after mutations.
  */
 export function useDocumentState({
-  statusQuery,
+  statusQuery: _statusQuery,
   healthQuery,
   uploadMutation,
   resetMutation,
@@ -39,8 +44,18 @@ export function useDocumentState({
   clearMessages,
 }: UseDocumentStateParams): UseDocumentStateReturn {
   const [uploadStatus, setUploadStatus] = useState('');
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(() => {
-    return localStorage.getItem(STORAGE_KEYS.FILENAME) || null;
+  const [documents, setDocuments] = useState<Document[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.FILENAME);
+      if (stored) {
+        // Backwards compat: old format was a string (filename), treat as empty array
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : [];
+      }
+    } catch {
+      // Fall through to empty array
+    }
+    return [];
   });
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -55,25 +70,18 @@ export function useDocumentState({
   // Derive isUploading from mutation state
   const isUploading = uploadMutation.isPending;
 
-  // Sync server status with local state
-  useEffect(() => {
-    if (statusQuery.isSuccess) {
-      setUploadedFileName(statusQuery.data.filename || null);
-    }
-  }, [statusQuery.data, statusQuery.isSuccess]);
-
-  // Persist filename to localStorage
+  // Persist documents array to localStorage
   useEffect(() => {
     try {
-      if (uploadedFileName) {
-        localStorage.setItem(STORAGE_KEYS.FILENAME, uploadedFileName);
+      if (documents.length > 0) {
+        localStorage.setItem(STORAGE_KEYS.FILENAME, JSON.stringify(documents));
       } else {
         localStorage.removeItem(STORAGE_KEYS.FILENAME);
       }
     } catch (e) {
-      console.warn('Failed to persist filename to localStorage:', e);
+      console.warn('Failed to persist documents to localStorage:', e);
     }
-  }, [uploadedFileName]);
+  }, [documents]);
 
   // Handle file upload with mutation
   const handleFileUpload = useCallback(
@@ -85,8 +93,9 @@ export function useDocumentState({
       try {
         await uploadMutation.mutateAsync(file);
         setUploadStatus('Document Ready!');
-        setUploadedFileName(file.name);
         setTimeout(() => setUploadStatus(''), 3000);
+        // Documents are refetched via React Query invalidation in useChat.ts
+        // after a successful upload — no need to invalidate here
       } catch (err) {
         console.error('Upload error:', err);
         setUploadStatus('Upload Failed');
@@ -95,29 +104,8 @@ export function useDocumentState({
     [uploadMutation]
   );
 
-  // Handle new chat (reset everything)
+  // Handle new chat (history only, documents persist)
   const handleNewChat = useCallback(async (): Promise<void> => {
-    try {
-      // Abort any ongoing request
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-
-      await resetMutation.mutateAsync();
-      clearMessages();
-      setUploadedFileName(null);
-
-      // Clear filename from localStorage (clearMessages handles RECENT)
-      localStorage.removeItem(STORAGE_KEYS.FILENAME);
-
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    } catch (err) {
-      console.error('Failed to reset chat:', err);
-    }
-  }, [resetMutation, abortControllerRef, clearMessages]);
-
-  // Handle clear chat (keep document)
-  const handleClearChat = useCallback(async (): Promise<void> => {
     try {
       // Abort any ongoing request
       if (abortControllerRef.current) {
@@ -131,14 +119,35 @@ export function useDocumentState({
     }
   }, [clearChatMutation, abortControllerRef, clearMessages]);
 
+  // Handle reset session (full wipe: history + documents)
+  const handleResetSession = useCallback(async (): Promise<void> => {
+    try {
+      // Abort any ongoing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+
+      await resetMutation.mutateAsync();
+      clearMessages();
+      setDocuments([]);
+
+      // Clear documents from localStorage
+      localStorage.removeItem(STORAGE_KEYS.FILENAME);
+
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (err) {
+      console.error('Failed to reset session:', err);
+    }
+  }, [resetMutation, abortControllerRef, clearMessages]);
+
   return {
     isUploading,
     uploadStatus,
-    uploadedFileName,
+    documents,
     connectionStatus,
     fileInputRef,
     handleFileUpload,
     handleNewChat,
-    handleClearChat,
+    handleResetSession,
   };
 }
