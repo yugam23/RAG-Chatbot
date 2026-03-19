@@ -6,13 +6,17 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { useKeyboardShortcuts, getShortcutKey } from './hooks/useKeyboardShortcuts';
 import { useChatContext } from './context/ChatContext';
 
+interface TestProps {
+  skipSplash?: boolean;
+}
+
 /**
  * App - Main application component
  * Now wrapped in ErrorBoundary with connection status indicator
  * Keyboard shortcuts: Ctrl+K (focus), Ctrl+Shift+N (new chat), Escape (abort)
  */
-const App = (): JSX.Element => {
-  const [showSplash, setShowSplash] = useState(true);
+const App = ({ testProps }: { testProps?: TestProps } = {}): JSX.Element => {
+  const [showSplash, setShowSplash] = useState(!testProps?.skipSplash);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Get chat context for keyboard shortcuts
