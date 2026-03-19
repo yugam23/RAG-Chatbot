@@ -6,6 +6,7 @@ import {
   useResetMutation,
   useClearChatMutation,
   useDeleteDocumentMutation,
+  useDocumentsQuery,
 } from './useApiQueries';
 import { useChatMessages } from './useChatMessages';
 import { useSseStream } from './useSseStream';
@@ -41,6 +42,7 @@ export function useChat(): UseChatReturn {
   const historyQuery = useHistoryQuery();
   const statusQuery = useStatusQuery();
   const healthQuery = useHealthQuery();
+  const documentsQuery = useDocumentsQuery();
   const uploadMutation = useUploadMutation();
   const resetMutation = useResetMutation();
   const clearChatMutation = useClearChatMutation();
@@ -57,7 +59,6 @@ export function useChat(): UseChatReturn {
   const {
     isUploading,
     uploadStatus,
-    documents,
     connectionStatus,
     fileInputRef,
     handleFileUpload,
@@ -95,8 +96,8 @@ export function useChat(): UseChatReturn {
     isUploading,
     /** Status text for the upload process */
     uploadStatus,
-    /** Array of currently uploaded documents */
-    documents,
+    /** Array of currently uploaded documents — server is authoritative source of truth */
+    documents: documentsQuery.data ?? [],
     /** Connection health status: 'online' | 'offline' | 'checking' */
     connectionStatus,
     /** Whether the chat history is currently loading from the server */
