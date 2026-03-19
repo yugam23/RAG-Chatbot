@@ -41,3 +41,10 @@ export interface StreamEvent {
   type: 'token' | 'sources' | 'error';
   data: string | string[];
 }
+
+export interface Document {
+  doc_id: string;
+  filename: string;
+  chunk_count: number;
+  created_at: string;
+}
