@@ -5,19 +5,20 @@ import {
   useUploadMutation,
   useResetMutation,
   useClearChatMutation,
+  useDeleteDocumentMutation,
 } from './useApiQueries';
 import { useChatMessages } from './useChatMessages';
 import { useSseStream } from './useSseStream';
 import { useDocumentState } from './useDocumentState';
 import type React from 'react';
-import type { Message } from '../types/api';
+import type { Message, Document } from '../types/api';
 
 export interface UseChatReturn {
   messages: Message[];
   isLoading: boolean;
   isUploading: boolean;
   uploadStatus: string;
-  uploadedFileName: string | null;
+  documents: Document[];
   connectionStatus: 'online' | 'offline' | 'checking';
   isHistoryLoading: boolean;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -25,7 +26,8 @@ export interface UseChatReturn {
   sendMessage: (input: string) => Promise<void>;
   handleFileUpload: (file: File) => Promise<void>;
   handleNewChat: () => Promise<void>;
-  handleClearChat: () => Promise<void>;
+  handleResetSession: () => Promise<void>;
+  handleRemoveDocument: (docId: string) => Promise<void>;
   abortRequest: () => void;
 }
 
@@ -42,6 +44,7 @@ export function useChat(): UseChatReturn {
   const uploadMutation = useUploadMutation();
   const resetMutation = useResetMutation();
   const clearChatMutation = useClearChatMutation();
+  const deleteDocumentMutation = useDeleteDocumentMutation();
 
   // Message state + localStorage sync + server history + auto-scroll
   const { messages, setMessages, clearMessages, messagesEndRef, isHistoryLoading } =
@@ -54,12 +57,12 @@ export function useChat(): UseChatReturn {
   const {
     isUploading,
     uploadStatus,
-    uploadedFileName,
+    documents,
     connectionStatus,
     fileInputRef,
     handleFileUpload,
     handleNewChat,
-    handleClearChat,
+    handleResetSession,
   } = useDocumentState({
     statusQuery,
     healthQuery,
@@ -70,6 +73,19 @@ export function useChat(): UseChatReturn {
     clearMessages,
   });
 
+  // Handle remove document — calls delete API and invalidates documents query
+  const handleRemoveDocument = React.useCallback(
+    async (docId: string): Promise<void> => {
+      try {
+        await deleteDocumentMutation.mutateAsync(docId);
+        // useDeleteDocumentMutation already invalidates the documents query on success
+      } catch (err) {
+        console.error('Failed to remove document:', err);
+      }
+    },
+    [deleteDocumentMutation]
+  );
+
   return {
     /** Array of chat messages */
     messages,
@@ -79,8 +95,8 @@ export function useChat(): UseChatReturn {
     isUploading,
     /** Status text for the upload process */
     uploadStatus,
-    /** Name of the currently active document */
-    uploadedFileName,
+    /** Array of currently uploaded documents */
+    documents,
     /** Connection health status: 'online' | 'offline' | 'checking' */
     connectionStatus,
     /** Whether the chat history is currently loading from the server */
@@ -93,7 +109,8 @@ export function useChat(): UseChatReturn {
     // Actions
     handleFileUpload,
     handleNewChat,
-    handleClearChat,
+    handleResetSession,
+    handleRemoveDocument,
     sendMessage,
     abortRequest,
   };
