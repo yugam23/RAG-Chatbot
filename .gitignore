@@ -60,4 +60,5 @@ adapters/
 scripts/
 GSD-STYLE.md
 PROJECT_RULES.md
-model_capabilities.yamlbackend/faiss_shards/
+model_capabilities.yaml
+backend/faiss_shards/
