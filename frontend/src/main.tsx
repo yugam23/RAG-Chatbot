@@ -1,3 +1,4 @@
+import "./instrument"; // MUST be first - initializes Sentry before React (OBS-02)
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
