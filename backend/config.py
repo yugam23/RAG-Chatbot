@@ -82,6 +82,11 @@ class Settings(BaseSettings):
     def MAX_REQUEST_BODY_BYTES(self) -> int:
         return self.MAX_REQUEST_BODY_MB * 1024 * 1024
 
+    # Observability (OBS-04)
+    SENTRY_DSN_BACKEND: str = Field(
+        default="", description="Sentry DSN for backend error tracking (optional, omit to disable)"
+    )
+
     @model_validator(mode="after")
     def validate_auth_config(self) -> "Settings":
         if self.REQUIRE_AUTH and not self.API_KEYS:
@@ -134,3 +139,4 @@ PDF_MAGIC_BYTES = settings.PDF_MAGIC_BYTES
 REQUIRE_AUTH = settings.REQUIRE_AUTH
 API_KEYS = settings.API_KEYS
 SHARD_DIR = settings.SHARD_DIR
+SENTRY_DSN_BACKEND = settings.SENTRY_DSN_BACKEND
