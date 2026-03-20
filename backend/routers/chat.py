@@ -3,6 +3,7 @@ from fastapi.responses import StreamingResponse
 import json
 import os
 import shutil
+import sentry_sdk
 
 from config import DB_PATH, VECTOR_STORE_PATH, SHARD_DIR
 from models import ChatRequest, StatusResponse, ResetResponse
@@ -86,15 +87,21 @@ async def chat(request: ChatRequest):
 
     async def event_generator():
         full_answer = ""
-        async for event in generate_chat_response(request.question):
-            # Parse event to extract text for history
-            try:
-                data = json.loads(event.strip())
-                if data["type"] == "token":
-                    full_answer += data["data"]
-            except (json.JSONDecodeError, KeyError):
-                pass
-            yield event
+        try:
+            async for event in generate_chat_response(request.question):
+                # Parse event to extract text for history
+                try:
+                    data = json.loads(event.strip())
+                    if data["type"] == "token":
+                        full_answer += data["data"]
+                except (json.JSONDecodeError, KeyError):
+                    pass
+                yield event
+        except Exception as e:
+            # OBS-03: Manually capture SSE exceptions that would otherwise be swallowed
+            sentry_sdk.capture_exception(e)
+            yield json.dumps({"type": "error", "data": str(e)})
+            return
 
         # Save Assistant Answer
         if full_answer:
