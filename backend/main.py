@@ -8,8 +8,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import os
 import shutil
+import sentry_sdk
+from sentry_sdk.integrations.starlette import StarletteIntegration
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 
-from config import ALLOWED_ORIGINS, DB_PATH, VECTOR_STORE_PATH, SHARD_DIR, GOOGLE_API_KEY
+from config import ALLOWED_ORIGINS, DB_PATH, VECTOR_STORE_PATH, SHARD_DIR, GOOGLE_API_KEY, SENTRY_DSN_BACKEND
 from database import init_db
 import aiosqlite
 from middleware import RateLimitMiddleware, RequestIDMiddleware, RequestSizeLimitMiddleware, APIKeyMiddleware, CSPHeaderMiddleware
@@ -26,6 +29,20 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
+    # Initialize Sentry before app instantiation (OBS-03, OBS-04)
+    dsn = os.environ.get("SENTRY_DSN_BACKEND", SENTRY_DSN_BACKEND).strip()
+    if dsn:
+        sentry_sdk.init(
+            dsn=dsn,
+            integrations=[
+                StarletteIntegration(),
+                FastApiIntegration(),
+            ],
+        )
+    else:
+        # OBS-04: Gracefully disabled when DSN absent
+        pass
+
     # Startup: Clear previous data to ensure a fresh session.
     # This aligns with the "stateless" nature of this specific chatbot demo,
     # preventing old data from bleeding into new user sessions.
@@ -49,6 +66,8 @@ async def lifespan(app: FastAPI):
 
     yield
     # Shutdown logic
+    if dsn:
+        await sentry_sdk.flush()
     logger.info("shutdown", message="Application shutting down")
 
 
