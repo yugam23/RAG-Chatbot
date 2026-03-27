@@ -1,39 +1,56 @@
 <div align="center">
 
-# 📚 RAG Chatbot
+# RAG Chatbot
 
 ### *Your Documents. Your Questions. Instant AI-Powered Answers.*
 
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/)
-[![React](https://img.shields.io/badge/react-19.2-61dafb)](https://reactjs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.109%2B-009688)](https://fastapi.tiangolo.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-38B2AC)](https://tailwindcss.com/)
-[![LangChain](https://img.shields.io/badge/LangChain-Integration-orange)](https://langchain.com/)
-[![Google Gemini](https://img.shields.io/badge/Google-Gemini-4285F4)](https://ai.google.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.9+-blue?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-19.2-61dafb?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://typescriptlang.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.1-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-7.2-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Google Gemini](https://img.shields.io/badge/Google%20Gemini-4285F4?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev/)
+[![Sentry](https://img.shields.io/badge/Sentry-Observability-362d59?style=flat-square&logo=sentry&logoColor=white)](https://sentry.io/)
 
-[Quick Start](#-quick-start) • [Features](#-features) • [Architecture](#-architecture) • [API Docs](#-api-reference)
+<!-- Feature Badges -->
+[![PDF Processing](https://img.shields.io/badge/PDF-Processing-FF6B6B?style=flat-square)](#pdf-processing)
+[![FAISS Vector Search](https://img.shields.io/badge/FAISS-Vector%20Search-4ECDC4?style=flat-square)](#rag-pipeline)
+[![SSE Streaming](https://img.shields.io/badge/SSE-Streaming-45B7D1?style=flat-square)](#real-time-streaming)
+[![SQLite Sessions](https://img.shields.io/badge/SQLite-Sessions-96CEB4?style=flat-square)](#session-management)
+[![Rate Limiting](https://img.shields.io/badge/Security-Rate%20Limiting-F7DC6F?style=flat-square)](#security)
+
+[Quick Start](#-quick-start) · [Features](#-features) · [Architecture](#-architecture) · [API Reference](#-api-reference) · [Docker](#-docker) · [Contributing](./CONTRIBUTING.md)
 
 ---
 
 </div>
 
-## 🌟 What is RAG Chatbot?
+## TL;DR
 
-**RAG Chatbot** is a cutting-edge **Retrieval-Augmented Generation (RAG)** application that transforms how you interact with your documents. Upload any PDF, and engage in intelligent, context-aware conversations powered by Google's Gemini AI.
+**RAG Chatbot** lets you upload PDFs and chat with them using Google's Gemini AI. It uses [RAG](https://arxiv.org/abs/2005.11401) (Retrieval-Augmented Generation) to ensure answers come *directly from your documents* — no hallucinations, no made-up facts.
 
-Unlike traditional chatbots, RAG Chatbot **doesn't hallucinate** — it answers based *strictly* on the content of your uploaded documents, combining the power of semantic search with advanced language models.
-
-### 🎯 Why RAG Chatbot?
-
-- ✅ **100% Context-Grounded**: Answers derived exclusively from your documents
-- ⚡ **Lightning Fast**: Optimized retrieval with FAISS vector database
-- 🎨 **Premium UI/UX**: Glassmorphism design with smooth animations
-- 🔒 **Privacy-First**: Process documents locally with no data persistence on restart
+> Upload a 200-page contract → ask "What are the termination clauses?" → get instant, accurate answers with citations.
 
 ---
 
-## 🎥 Demo
+## Use Cases
+
+RAG Chatbot is perfect for:
+
+| Use Case | What You Upload | What You Ask |
+|----------|-----------------|--------------|
+| **Legal Documents** | Contracts, NDAs, agreements | "What are the liability limits?" |
+| **Research Papers** | Academic PDFs, technical papers | "Summarize the methodology" |
+| **Technical Docs** | API specs, architecture docs | "How do I authenticate?" |
+| **Financial Reports** | Earnings reports, audits | "What was the revenue growth?" |
+| **Policy Documents** | Employee handbooks, compliance | "What's the PTO policy?" |
+| **Books & Manuals** | Product manuals, guidebooks | "How do I reset the device?" |
+
+---
+
+## Demo
 
 <div align="center">
   <img src="demo/demo.webp" alt="RAG Chatbot Demo" width="100%">
@@ -41,183 +58,304 @@ Unlike traditional chatbots, RAG Chatbot **doesn't hallucinate** — it answers 
 
 ---
 
-## 🚀 Quick Start
-
-Get up and running in **3 minutes**!
+## Quick Start
 
 ### Prerequisites
 
-- **Python 3.9+** — [Download](https://www.python.org/downloads/)
-- **Node.js 18+** — [Download](https://nodejs.org/)
-- **Google API Key** — [Get one here](https://aistudio.google.com/app/apikey)
+| Requirement | Version | Download |
+|-------------|---------|----------|
+| Python | 3.9+ | [python.org](https://www.python.org/downloads/) |
+| Node.js | 18+ | [nodejs.org](https://nodejs.org/) |
+| Google API Key | — | [Get free key](https://aistudio.google.com/app/apikey) |
 
-### Installation
-
-#### 1️⃣ Clone the Repository
+### 1. Clone & Configure
 
 ```bash
 git clone https://github.com/yugam23/RAG-Chatbot.git
 cd RAG-Chatbot
+cp .env.example .env
 ```
 
-#### 2️⃣ Backend Setup
+Edit `.env` and add your Google API key:
+```env
+GOOGLE_API_KEY=your_actual_api_key_here
+```
+
+### 2. Backend
 
 ```bash
 cd backend
 python -m venv venv
-
 # Windows:
 venv\Scripts\activate
 # macOS/Linux:
 source venv/bin/activate
 
 pip install -r requirements.txt
-```
-
-**Configure Environment:**
-Create a `.env` file in `backend/`:
-```env
-GOOGLE_API_KEY=your_actual_api_key_here
-ALLOWED_ORIGINS=http://localhost:5173
-```
-
-**Run the Backend:**
-```bash
 python main.py
-# 🚀 Server running at http://localhost:8000
+# Backend running at http://localhost:8000
 ```
 
-#### 3️⃣ Frontend Setup
+### 3. Frontend
 
 Open a **new terminal**:
+
 ```bash
 cd frontend
 npm install
 npm run dev
-# ✨ App running at http://localhost:5173
+# Frontend running at http://localhost:5173
+```
+
+Open **[http://localhost:5173](http://localhost:5173)** and start chatting!
+
+> **Tip:** Press `Ctrl+K` to focus the chat input. Press `Ctrl+Shift+N` for a new chat session.
+
+---
+
+## Docker
+
+One-command setup with Docker Compose:
+
+```bash
+# 1. Add your API key
+echo "GOOGLE_API_KEY=your_key_here" > .env
+
+# 2. Start everything
+docker compose up
+```
+
+App available at **[http://localhost:5173](http://localhost:5173)** · API docs at **[http://localhost:8000/docs](http://localhost:8000/docs)**
+
+> **Ephemeral Sessions:** The FAISS index and SQLite database are **deleted on every container restart** by design. Uploaded documents do not persist across restarts. See `docker-compose.yml` for optional volume mounting to enable persistence.
+
+---
+
+## Features
+
+### Backend
+
+| Feature | Description |
+|---------|-------------|
+| **Google Gemini** | `gemini-flash-latest` for fast, accurate responses |
+| **RAG Pipeline** | Recursive chunking (800 chars, 400 overlap) + Gecko embeddings |
+| **FAISS Vector Search** | CPU-optimized indexing, top-k=7 retrieval |
+| **PDF Processing** | Magic byte validation, 50MB limit, PyPDF text extraction |
+| **Multi-document Index** | Per-document FAISS shards merged into unified index |
+| **Session Management** | SQLite chat history with async operations |
+| **Security** | Rate limiting (10 uploads/min, 30 chat/min), API key auth, CSP headers |
+| **Observability** | Sentry error tracking + structured logging (structlog) |
+
+### Frontend
+
+| Feature | Description |
+|---------|-------------|
+| **Glassmorphism UI** | Blur effects, gradients, depth |
+| **Startup Animation** | Smooth logo intro with Framer Motion |
+| **Real-Time Streaming** | SSE with live token rendering |
+| **Markdown Rendering** | Syntax highlighting via `react-markdown` + `remark-gfm` |
+| **Dark/Light Theme** | Persistent theme toggle |
+| **Responsive** | Optimized for desktop, tablet, mobile |
+| **Connection Status** | Live health indicators (FAISS, SQLite, Gemini API) |
+| **ErrorBoundary** | Sentry-integrated error handling with fallback UI |
+| **Keyboard Shortcuts** | `Ctrl+K` focus · `Ctrl+Shift+N` new chat · `Esc` abort |
+| **TanStack Query** | Optimistic updates, caching, background refetch |
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         FRONTEND                                 │
+│  React 19 + Vite 7 + Tailwind CSS 4 + Framer Motion +           │
+│  TanStack Query + TypeScript + Sentry ErrorBoundary              │
+│  ─────────────────────────────────────────────────────────────   │
+│  Ports: 5173 (dev) · 80 (prod)                                  │
+└────────────────────────────┬────────────────────────────────────┘
+                             │ HTTP / SSE (application/x-ndjson)
+                             ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                         BACKEND                                  │
+│  FastAPI 0.109+ · Python 3.9+ · LangChain · Sentry SDK          │
+│  ─────────────────────────────────────────────────────────────   │
+│  Routers: /upload · /chat · /documents · /history · /health    │
+│  Middleware: RateLimit · RequestID · APIKey · CSP               │
+│  Ports: 8000                                                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### RAG Pipeline
+
+```
+ PDF Upload ──▶ Magic Byte Validation ──▶ PyPDF Extraction
+                                            │
+                                            ▼
+                                     Recursive Chunking
+                                       (800 / 400 overlap)
+                                            │
+                                            ▼
+                                    Gecko Embeddings (001)
+                                            │
+                                            ▼
+                              ┌───────────────────────────┐
+                              │   Per-doc FAISS Shards    │
+                              │        (faiss_shards/)    │
+                              └───────────┬───────────────┘
+                                          │ merge on new upload
+                                          ▼
+                               ┌──────────────────────┐
+                               │  Unified FAISS Index  │
+                               │     (faiss_index/)     │
+                               └───────────┬──────────┘
+                                           │
+                   User Query ─────────────►│
+                                           ▼
+                               ┌──────────────────────┐
+                               │  Top-K Similarity    │
+                               │     Search (k=7)     │
+                               └───────────┬──────────┘
+                                           │
+                                           ▼
+                               ┌──────────────────────┐
+                               │  Prompt Construction │
+                               │  (context + query)   │
+                               └───────────┬──────────┘
+                                           │
+                                           ▼
+                               ┌──────────────────────┐
+                               │  Gemini Flash LLM    │
+                               │  (streaming via SSE) │
+                               └──────────────────────┘
 ```
 
 ---
 
-<details>
-<summary><h2>✨ Key Features</h2></summary>
+## Tech Stack
 
-### 🧠 Intelligent Backend
+| Layer | Technology | Version |
+|-------|------------|---------|
+| **Frontend Framework** | React | 19.2 |
+| **Build Tool** | Vite | 7.2 |
+| **Language** | TypeScript | 5.9 |
+| **Styling** | Tailwind CSS | 4.1 |
+| **Animations** | Framer Motion | 12.26 |
+| **State/Data** | TanStack Query | 5.90 |
+| **Markdown** | react-markdown | 10.1 |
+| **Error Tracking** | @sentry/react | 10.45 |
+| **Testing** | Vitest | 4.0 |
+| **Backend Framework** | FastAPI | 0.109 |
+| **AI/ML** | LangChain + langchain-google-genai | 0.1 / 0.0.6 |
+| **Vector Store** | FAISS (CPU) | 1.7.4 |
+| **PDF Processing** | PyPDF | 3.17 |
+| **Database** | aiosqlite (async SQLite) | 0.19 |
+| **Validation** | Pydantic | 2.5 |
+| **Logging** | structlog | 24.0 |
+| **Observability** | sentry-sdk | 1.0 |
 
-| Feature | Description |
-|---------|-------------|
-| **🤖 Google Gemini Integration** | Powered by `gemini-flash-latest` for ultra-fast, accurate responses |
-| **🔍 Advanced RAG Pipeline** | Semantic chunking (800 chars, 400 overlap) + Gecko embeddings |
-| **💾 Vector Search** | FAISS CPU-optimized indexing with k=7 retrieval |
-| **📑 Robust PDF Processing** | Magic byte validation, 50MB limit, secure temp storage |
-| **💬 Session Management** | SQLite-based chat history with full persistence |
-| **🔄 Auto-Reset** | Session and index auto-clear on server restart |
+---
 
-### 🎨 Premium Frontend
-
-| Feature | Description |
-|---------|-------------|
-| **✨ Glassmorphism Design** | Modern blur effects, gradients, and depth |
-| **🎬 Startup Animation** | Smooth logo intro with motion transitions |
-| **💬 Real-Time Streaming** | Server-Sent Events (SSE) for live response rendering |
-| **📝 Markdown Support** | Full syntax highlighting with `react-markdown` + `remark-gfm` |
-| **📱 Fully Responsive** | Optimized for desktop, tablet, and mobile |
-| **⚡ Optimized Caching** | TanStack Query for efficient data fetching |
-
-</details>
-
-<details>
-<summary><h2>🏗️ Architecture</h2></summary>
-
-RAG Chatbot follows a modern **client-server architecture**:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         USER INTERFACE                          │
-│  React + Vite + Tailwind CSS + Framer Motion + TanStack Query   │
-└────────────────────────────┬────────────────────────────────────┘
-                             │ HTTP/SSE
-                             ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                        FASTAPI BACKEND                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌─────────────────────┐    │
-│  │   Routers    │  │  Middleware  │  │   State Manager     │    │
-│  │ /upload      │  │ - Rate Limit │  │ - Session State     │    │
-│  │ /chat        │  │ - Request ID │  │ - Vector Store Ref  │    │
-│  └──────────────┘  └──────────────┘  └─────────────────────┘    │
-│                             │                                   │
-│                             ▼                                   │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │                  RAG PIPELINE (LangChain)                │   │
-│  │  ┌────────┐   ┌────────┐   ┌──────────┐   ┌──────────┐   │   │
-│  │  │  PDF   │──▶│ Chunk  │──▶│  Embed   │──▶│  FAISS │   │   │
-│  │  │ Loader │   │ (800)  │   │ (Gecko)  │   │  Index   │   │   │
-│  │  └────────┘   └────────┘   └──────────┘   └──────────┘   │   │
-│  └──────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### 🔄 RAG Pipeline Workflow
-
-1. **📤 Document Ingestion**: PDF Upload → Magic Byte Validation → Text Extraction → Recursive Chunking (800/400).
-2. **🧮 Embedding & Indexing**: Google Gecko Embeddings → FAISS Vector Store.
-3. **💬 Query Processing**: User Query → Embedding → Similarity Search (Top-k) → Prompt Construction.
-4. **🤖 Response Generation**: Context + Query → Gemini Flash → Streaming Response.
-
-</details>
-
-<details>
-<summary><h2>📂 Project Structure</h2></summary>
+## Project Structure
 
 ```
 RAG-Chatbot/
-├── 📁 backend/                     # FastAPI Python Backend
-│   ├── 📁 routers/                 # API Route Handlers
-│   │   ├── upload.py               # PDF upload & indexing endpoint
-│   │   └── chat.py                 # Chat streaming & history endpoints
-│   ├── 📁 tests/                   # Pytest Test Suite
-│   ├── 📁 temp/                    # Temporary PDF storage
-│   ├── 📁 faiss_index/             # Vector database (generated)
-│   ├── config.py                   # Centralized configuration
-│   ├── database.py                 # SQLite async operations
-│   ├── ingestion.py                # Document processing pipeline
-│   ├── rag.py                      # RAG chain implementation
-│   ├── state.py                    # Application state management
-│   ├── vector_store.py             # Vector store logic
-│   ├── middleware.py               # Rate limiting & request tracking
-│   ├── logging_config.py           # Structured logging setup
-│   ├── models.py                   # Pydantic models
-│   ├── main.py                     # FastAPI app entry point
-│   └── requirements.txt            # Python dependencies
 │
-├── 📁 frontend/                    # React + Vite Frontend
-│   ├── 📁 src/
-│   │   ├── 📁 components/          # React Components (Header, ChatArea, etc.)
-│   │   ├── 📁 hooks/               # Custom React Hooks (useChat, useApiQueries)
-│   │   ├── 📁 services/            # API Communication
-│   │   ├── 📁 context/             # React Context Providers
-│   │   ├── App.jsx                 # Main App component
-│   │   ├── main.jsx                # React entry point
-│   │   └── index.css               # Global styles & theme
-│   ├── 📁 public/                  # Static Assets
-│   └── vite.config.js              # Vite configuration
+├── backend/                          # FastAPI Backend
+│   ├── main.py                       # App entry, lifespan, middleware
+│   ├── config.py                     # Pydantic Settings (all config)
+│   ├── models.py                     # Request/response Pydantic models
+│   ├── database.py                   # Async SQLite (messages, docs)
+│   ├── state.py                      # AppState (vector store, sessions)
+│   ├── cache.py                      # In-memory caching utilities
+│   ├── ingestion.py                  # PDF → chunks pipeline
+│   ├── rag.py                        # Retrieval + generation chain
+│   ├── vector_store.py               # FAISS abstraction layer
+│   ├── middleware.py                 # RateLimit, RequestID, APIKey, CSP
+│   ├── logging_config.py             # structlog setup
+│   ├── requirements.txt              # Python dependencies
+│   ├── Dockerfile
+│   ├── routers/                      # API route handlers
+│   │   ├── chat.py                   # POST /chat · GET /history
+│   │   │                             # POST /clear_chat · POST /reset
+│   │   ├── upload.py                 # POST /upload
+│   │   └── documents.py              # GET /documents · DELETE /documents/{id}
+│   ├── tests/                        # pytest suite
+│   ├── temp/                         # Temporary PDF storage
+│   ├── faiss_index/                  # Unified FAISS index (generated)
+│   ├── faiss_shards/                 # Per-document FAISS shards
+│   └── chat_history.db               # SQLite database (generated)
 │
-└── 📄 README.md                    # This file!
+├── frontend/                         # React Frontend
+│   ├── package.json
+│   ├── vite.config.ts
+│   ├── index.html
+│   ├── src/
+│   │   ├── main.tsx                  # Entry point (Sentry init → App)
+│   │   ├── instrument.ts             # Sentry frontend setup
+│   │   ├── App.tsx                   # Root component + providers
+│   │   ├── index.css                 # Tailwind + global styles
+│   │   ├── components/
+│   │   │   ├── Header.tsx            # Nav: upload, docs, theme
+│   │   │   ├── ChatArea.tsx          # Message list container
+│   │   │   ├── ChatInput.tsx         # Message input + send
+│   │   │   ├── ChatMessage.tsx       # Individual message bubble
+│   │   │   ├── SplashScreen.tsx       # Startup animation
+│   │   │   ├── ErrorBoundary.tsx     # Sentry ErrorBoundary wrapper
+│   │   │   ├── MarkdownComponents.tsx # Markdown render config
+│   │   │   ├── Skeleton.tsx           # Loading placeholder
+│   │   │   └── index.ts               # Component exports
+│   │   ├── hooks/
+│   │   │   ├── useChat.ts            # Chat orchestration
+│   │   │   ├── useSseStream.ts        # SSE streaming + AbortController
+│   │   │   ├── useChatMessages.ts    # Message state management
+│   │   │   ├── useDocumentState.ts   # Upload/document state
+│   │   │   ├── useApiQueries.ts      # TanStack Query hooks
+│   │   │   └── useKeyboardShortcuts.ts
+│   │   ├── services/
+│   │   │   └── api.ts                # All backend API calls
+│   │   ├── context/
+│   │   │   ├── ChatContext.tsx       # Chat state provider
+│   │   │   └── ThemeContext.tsx      # Theme provider
+│   │   ├── types/
+│   │   │   └── api.ts                # TypeScript interfaces
+│   │   ├── mocks/                    # MSW mocks for testing
+│   │   └── test/                     # Test utilities
+│   └── public/
+│       └── chatbot.png               # Logo
+│
+├── demo/                             # Screenshots
+├── docs/                             # Architecture Decision Records
+├── scripts/                          # Utility scripts
+├── .env.example                      # Environment template
+├── docker-compose.yml                # Docker orchestration
+├── model_capabilities.yaml           # Model selection guide
+├── LICENSE                           # MIT License
+├── README.md                         # This file
+├── CONTRIBUTING.md                  # Contribution guidelines
+└── PROJECT_RULES.md                  # Project conventions
 ```
 
-</details>
+---
 
-<details>
-<summary><h2>⚙️ Configuration</h2></summary>
+## Configuration
 
 ### Environment Variables
 
+Copy `.env.example` to `.env` and configure:
+
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `GOOGLE_API_KEY` | ✅ Yes | — | Google AI API key for Gemini & Gecko |
-| `ALLOWED_ORIGINS` | ❌ No | `http://localhost:5173` | Comma-separated CORS origins |
+| `GOOGLE_API_KEY` | **Yes** | — | Google AI API key ([get one free](https://aistudio.google.com/app/apikey)) |
+| `ALLOWED_ORIGINS` | No | `http://localhost:5173` | CORS origins (comma-separated) |
+| `REQUIRE_AUTH` | No | `false` | Enable API key authentication |
+| `API_KEYS` | No | — | Comma-separated API keys (when `REQUIRE_AUTH=true`) |
+| `SENTRY_DSN_BACKEND` | No | — | Sentry DSN for backend error tracking |
+| `VITE_SENTRY_DSN_FRONTEND` | No | — | Sentry DSN for frontend error tracking |
+| `VITE_API_URL` | No | `http://localhost:8000` | Backend API URL for frontend |
 
-### Advanced Tuning (`backend/config.py`)
+### Tuning Parameters
+
+In `backend/config.py`:
 
 ```python
 # Document Processing
@@ -228,52 +366,98 @@ CHUNK_OVERLAP = 400           # Overlap between chunks
 RETRIEVER_K = 7               # Number of chunks to retrieve
 
 # Models
-EMBEDDING_MODEL = "models/text-embedding-004"
-LLM_MODEL = "gemini-flash-latest"
+EMBEDDING_MODEL = "models/text-embedding-004"   # Google Gecko
+LLM_MODEL = "gemini-flash-latest"              # Google Gemini Flash
 ```
 
-</details>
+---
 
-<details>
-<summary><h2>📡 API Reference</h2></summary>
+## API Reference
 
-Full interactive documentation available at **[http://localhost:8000/docs](http://localhost:8000/docs)**.
+Interactive docs: **[http://localhost:8000/docs](http://localhost:8000/docs)**
 
-### Core Endpoints
+### Upload & Documents
 
-- **`POST /upload`**: Upload and index a PDF. Validates magic bytes and size.
-- **`POST /chat`**: Stream chat response via SSE. Requires active session.
-- **`GET /history`**: Retrieve stored chat history.
-- **`POST /clear-chat`**: Clear history but keep document index.
-- **`POST /reset`**: Full session reset (wipes history + index).
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/upload` | Upload PDF, validate, chunk, and index |
+| `GET` | `/documents` | List all uploaded documents |
+| `DELETE` | `/documents/{doc_id}` | Delete a document and its FAISS shard |
+| `GET` | `/status` | Current indexing status and document count |
 
-</details>
+### Chat
 
-<details>
-<summary><h2>🧪 Testing & Troubleshooting</h2></summary>
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/chat` | Stream a chat response via SSE |
+| `GET` | `/history` | Retrieve paginated chat history |
+| `POST` | `/clear_chat` | Clear chat history, keep documents |
+| `POST` | `/reset` | Full reset: clear history + rebuild index |
 
-### Running Tests
+### Health
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/health` | Health check with dependency probes (FAISS, SQLite, Gemini) |
+
+---
+
+## Testing
+
+### Backend
 
 ```bash
 cd backend
-pytest -v          # Run all tests
-pytest tests/test_ingestion.py  # Test specific module
+pytest -v                          # Run all tests
+pytest tests/test_ingestion.py -v  # Test specific module
+pytest --cov=.                     # With coverage report
 ```
 
-### Common Issues
+### Frontend
 
-- **`ValidationError: GOOGLE_API_KEY field required`**: Add your API key to `backend/.env`.
-- **`Failed to fetch`**: Ensure backend is running on port 8000.
-- **`Invalid file type`**: Ensure the file is a valid PDF.
+```bash
+cd frontend
+npm test                           # Run tests
+npm run test:coverage              # With coverage
+npm run lint                       # Lint code
+npm run build                      # Production build
+```
 
-</details>
+---
+
+## Troubleshooting
+
+| Problem | Cause | Solution |
+|---------|-------|---------|
+| `ValidationError: GOOGLE_API_KEY field required` | Missing API key | Add `GOOGLE_API_KEY=your_key` to `.env` |
+| `Failed to fetch` | Backend not running | Ensure `python main.py` is running on port 8000 |
+| `Invalid file type` | Not a valid PDF | Ensure file is a real PDF (magic bytes checked) |
+| `File too large` | Exceeds 50MB | Reduce PDF size or split into smaller files |
+| Docker: `service unhealthy` | Missing API key | Verify `GOOGLE_API_KEY` is set in `.env` |
+| `CORS error` | Origin mismatch | Set `ALLOWED_ORIGINS` to include your frontend URL |
+
+---
+
+## Contributing
+
+Contributions welcome! See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines on code style, commit format, and pull request process.
+
+Quick links:
+- [Open an issue](https://github.com/yugam23/RAG-Chatbot/issues) for bugs or features
+- [Start a discussion](https://github.com/yugam23/RAG-Chatbot/discussions) for questions
+
+---
+
+## Roadmap
+
+Interested in what's next? Check out our [GitHub Issues](https://github.com/yugam23/RAG-Chatbot/issues) for planned features and known bugs.
 
 ---
 
 <div align="center">
 
-**Made with ❤️ by [Yugam](https://github.com/yugam23)**
+**MIT License** · Built by [Yugam](https://github.com/yugam23)
 
-[⬆ Back to Top](#-rag-chatbot)
+[Back to Top](#rag-chatbot)
 
 </div>
